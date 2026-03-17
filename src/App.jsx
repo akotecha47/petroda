@@ -1,35 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import Login from './pages/Login'
+import Profile from './pages/Profile'
+import OwnerHome from './pages/owner/OwnerHome'
+import AdminHome from './pages/admin/AdminHome'
+import JuniorAdminHome from './pages/junioradmin/JuniorAdminHome'
+import ManagerHome from './pages/manager/ManagerHome'
+import AttendantHome from './pages/attendant/AttendantHome'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/app/owner"
+          element={
+            <ProtectedRoute roles={['owner']}>
+              <OwnerHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/admin"
+          element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/junior-admin"
+          element={
+            <ProtectedRoute roles={['junior_admin']}>
+              <JuniorAdminHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager"
+          element={
+            <ProtectedRoute roles={['manager']}>
+              <ManagerHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/attendant"
+          element={
+            <ProtectedRoute roles={['attendant']}>
+              <AttendantHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/profile"
+          element={
+            <ProtectedRoute roles={['owner', 'admin', 'junior_admin', 'manager', 'attendant']}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </AuthProvider>
   )
 }
-
-export default App
