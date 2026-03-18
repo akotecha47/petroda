@@ -14,6 +14,8 @@ import AttendantHome from './pages/attendant/AttendantHome'
 import StationStock from './pages/manager/StationStock'
 import DipEntry from './pages/manager/DipEntry'
 import DeliveryEntry from './pages/manager/DeliveryEntry'
+import StationCash from './pages/manager/StationCash'
+import CashMovementEntry from './pages/manager/CashMovementEntry'
 
 export default function App() {
   return (
@@ -97,6 +99,22 @@ export default function App() {
           element={
             <ProtectedRoute roles={['manager', 'admin', 'owner']}>
               <DeliveryEntry />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/cash"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <StationCash />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/cash/new"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <CashMovementEntry />
             </ProtectedRoute>
           }
         />
