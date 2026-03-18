@@ -207,6 +207,12 @@ export default function ManagerHome() {
             Cash Log
           </Link>
           <Link
+            to="/app/manager/flags"
+            className="bg-white border border-gray-200 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Flags
+          </Link>
+          <Link
             to="/app/manager/close"
             aria-disabled={!bothClosed}
             className={`text-sm font-medium px-5 py-2.5 rounded-lg transition-colors ${

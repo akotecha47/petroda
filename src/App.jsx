@@ -16,6 +16,8 @@ import DipEntry from './pages/manager/DipEntry'
 import DeliveryEntry from './pages/manager/DeliveryEntry'
 import StationCash from './pages/manager/StationCash'
 import CashMovementEntry from './pages/manager/CashMovementEntry'
+import FlagsInvestigations from './pages/manager/FlagsInvestigations'
+import DipVerification from './pages/junioradmin/DipVerification'
 
 export default function App() {
   return (
@@ -115,6 +117,22 @@ export default function App() {
           element={
             <ProtectedRoute roles={['manager', 'admin', 'owner']}>
               <CashMovementEntry />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/flags"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <FlagsInvestigations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/junior-admin/dip-verify"
+          element={
+            <ProtectedRoute roles={['junior_admin', 'admin', 'owner']}>
+              <DipVerification />
             </ProtectedRoute>
           }
         />
