@@ -11,6 +11,9 @@ import ShiftReview from './pages/manager/ShiftReview'
 import ShiftCorrection from './pages/manager/ShiftCorrection'
 import ShiftClose from './pages/manager/ShiftClose'
 import AttendantHome from './pages/attendant/AttendantHome'
+import StationStock from './pages/manager/StationStock'
+import DipEntry from './pages/manager/DipEntry'
+import DeliveryEntry from './pages/manager/DeliveryEntry'
 
 export default function App() {
   return (
@@ -70,6 +73,30 @@ export default function App() {
           element={
             <ProtectedRoute roles={['manager', 'admin', 'owner']}>
               <ShiftClose />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/stock"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <StationStock />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/dip"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <DipEntry />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/delivery"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <DeliveryEntry />
             </ProtectedRoute>
           }
         />

@@ -175,12 +175,30 @@ export default function ManagerHome() {
         </div>
 
         <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Quick Actions</h2>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Link
             to="/app/manager/shifts"
             className="bg-gray-900 text-white text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-gray-700 transition-colors"
           >
             Review Shift Entries
+          </Link>
+          <Link
+            to="/app/manager/stock"
+            className="bg-white border border-gray-200 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Station Stock
+          </Link>
+          <Link
+            to="/app/manager/dip"
+            className="bg-white border border-gray-200 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Record Dip
+          </Link>
+          <Link
+            to="/app/manager/delivery"
+            className="bg-white border border-gray-200 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Record Delivery
           </Link>
           <Link
             to="/app/manager/close"
