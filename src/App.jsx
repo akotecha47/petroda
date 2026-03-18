@@ -9,6 +9,12 @@ import SalesRevenue from './pages/owner/SalesRevenue'
 import StockSupply from './pages/owner/StockSupply'
 import VarianceLosses from './pages/owner/VarianceLosses'
 import AdminHome from './pages/admin/AdminHome'
+import UserManagement from './pages/admin/UserManagement'
+import StationManagement from './pages/admin/StationManagement'
+import ThresholdsRules from './pages/admin/ThresholdsRules'
+import PaymentMethods from './pages/admin/PaymentMethods'
+import FuelPrices from './pages/admin/FuelPrices'
+import InvestigationAudit from './pages/admin/InvestigationAudit'
 import JuniorAdminHome from './pages/junioradmin/JuniorAdminHome'
 import ManagerHome from './pages/manager/ManagerHome'
 import ShiftReview from './pages/manager/ShiftReview'
@@ -71,8 +77,56 @@ export default function App() {
         <Route
           path="/app/admin"
           element={
-            <ProtectedRoute roles={['admin']}>
+            <ProtectedRoute roles={['admin', 'owner']}>
               <AdminHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/admin/users"
+          element={
+            <ProtectedRoute roles={['admin', 'owner']}>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/admin/stations"
+          element={
+            <ProtectedRoute roles={['admin', 'owner']}>
+              <StationManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/admin/thresholds"
+          element={
+            <ProtectedRoute roles={['admin', 'owner']}>
+              <ThresholdsRules />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/admin/payment-methods"
+          element={
+            <ProtectedRoute roles={['admin', 'owner']}>
+              <PaymentMethods />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/admin/fuel-prices"
+          element={
+            <ProtectedRoute roles={['admin', 'owner']}>
+              <FuelPrices />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/admin/investigations"
+          element={
+            <ProtectedRoute roles={['admin', 'owner']}>
+              <InvestigationAudit />
             </ProtectedRoute>
           }
         />
