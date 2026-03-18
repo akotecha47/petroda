@@ -4,6 +4,10 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
 import OwnerHome from './pages/owner/OwnerHome'
+import StationComparison from './pages/owner/StationComparison'
+import SalesRevenue from './pages/owner/SalesRevenue'
+import StockSupply from './pages/owner/StockSupply'
+import VarianceLosses from './pages/owner/VarianceLosses'
 import AdminHome from './pages/admin/AdminHome'
 import JuniorAdminHome from './pages/junioradmin/JuniorAdminHome'
 import ManagerHome from './pages/manager/ManagerHome'
@@ -27,8 +31,40 @@ export default function App() {
         <Route
           path="/app/owner"
           element={
-            <ProtectedRoute roles={['owner']}>
+            <ProtectedRoute roles={['owner', 'admin']}>
               <OwnerHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/owner/compare"
+          element={
+            <ProtectedRoute roles={['owner', 'admin']}>
+              <StationComparison />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/owner/sales"
+          element={
+            <ProtectedRoute roles={['owner', 'admin']}>
+              <SalesRevenue />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/owner/stock"
+          element={
+            <ProtectedRoute roles={['owner', 'admin']}>
+              <StockSupply />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/owner/variance"
+          element={
+            <ProtectedRoute roles={['owner', 'admin']}>
+              <VarianceLosses />
             </ProtectedRoute>
           }
         />
