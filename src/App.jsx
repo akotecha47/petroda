@@ -7,6 +7,9 @@ import OwnerHome from './pages/owner/OwnerHome'
 import AdminHome from './pages/admin/AdminHome'
 import JuniorAdminHome from './pages/junioradmin/JuniorAdminHome'
 import ManagerHome from './pages/manager/ManagerHome'
+import ShiftReview from './pages/manager/ShiftReview'
+import ShiftCorrection from './pages/manager/ShiftCorrection'
+import ShiftClose from './pages/manager/ShiftClose'
 import AttendantHome from './pages/attendant/AttendantHome'
 
 export default function App() {
@@ -41,8 +44,32 @@ export default function App() {
         <Route
           path="/app/manager"
           element={
-            <ProtectedRoute roles={['manager']}>
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
               <ManagerHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/shifts"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <ShiftReview />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/correct"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <ShiftCorrection />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/manager/close"
+          element={
+            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+              <ShiftClose />
             </ProtectedRoute>
           }
         />

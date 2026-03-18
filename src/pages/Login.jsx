@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { fetchProfile } from '../context/AuthContext'
 import { ROLE_HOME } from '../lib/roles'
 
 export default function Login() {
-  const { session, user, loading } = useAuth()
+  const { session, user, loading, setSession, setUser } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  // Redirect if already authenticated (e.g. revisiting /login while logged in)
   useEffect(() => {
     if (!loading && session && user) {
       navigate(ROLE_HOME[user.role], { replace: true })
@@ -22,12 +24,24 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setSubmitting(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setError(error.message)
+
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    if (signInError) {
+      setError(signInError.message)
       setSubmitting(false)
+      return
     }
-    // On success, onAuthStateChange updates context → useEffect above redirects
+
+    const profile = await fetchProfile(data.user.id)
+    if (!profile) {
+      setError('Account not found. Contact your administrator.')
+      setSubmitting(false)
+      return
+    }
+
+    setSession(data.session)
+    setUser(profile)
+    navigate(ROLE_HOME[profile.role], { replace: true })
   }
 
   return (

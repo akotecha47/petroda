@@ -1,6 +1,14 @@
 import { supabase } from './supabase'
 
 /**
+ * Returns today's date as 'YYYY-MM-DD' in local time (not UTC).
+ */
+export function todayISO() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/**
  * Returns the id of an existing shift matching station+type+date,
  * or creates one and returns the new id.
  * @param {string} stationId
