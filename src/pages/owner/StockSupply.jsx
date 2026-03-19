@@ -5,7 +5,8 @@ import { currentStock } from '../../lib/stockUtils'
 import OwnerNav from '../../components/owner/OwnerNav'
 
 function StockBar({ pct }) {
-  const color = pct === null ? 'bg-gray-200' : pct < 10 ? 'bg-red-500' : pct < 25 ? 'bg-amber-500' : 'bg-green-500'
+  const overCap = pct !== null && pct > 100
+  const color = pct === null ? 'bg-gray-200' : overCap ? 'bg-amber-400' : pct < 10 ? 'bg-red-500' : pct < 25 ? 'bg-amber-500' : 'bg-green-500'
   const textColor = pct === null ? 'text-gray-400' : pct < 10 ? 'text-red-600' : pct < 25 ? 'text-amber-600' : 'text-green-700'
   return (
     <div className="flex items-center gap-2">
@@ -15,6 +16,7 @@ function StockBar({ pct }) {
       <span className={`text-xs font-medium ${textColor} w-8 text-right`}>
         {pct !== null ? `${pct}%` : '—'}
       </span>
+      {overCap && <span className="text-xs text-amber-600">above capacity</span>}
     </div>
   )
 }

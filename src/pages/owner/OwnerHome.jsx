@@ -19,9 +19,17 @@ const SHIFT_STATUS_BADGE = {
   closed: 'bg-green-100 text-green-700',
 }
 
-function KpiCard({ label, value, unit }) {
+function fmtMWK(n) {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
+  return Math.round(n).toLocaleString()
+}
+
+function KpiCard({ label, value, unit, accentColor }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
+    <div
+      className="bg-white rounded-xl border border-gray-200 p-5"
+      style={accentColor ? { borderLeft: `4px solid ${accentColor}` } : undefined}
+    >
       <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">{label}</p>
       <p className="text-2xl font-bold text-gray-900 leading-none">
         {value}
@@ -281,12 +289,12 @@ export default function OwnerHome() {
           </div>
         ) : kpis && (
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-            <KpiCard label="PMA Sold" value={kpis.pma.toLocaleString()} unit="L" />
-            <KpiCard label="AGO Sold" value={kpis.ago.toLocaleString()} unit="L" />
-            <KpiCard label="Revenue" value={Math.round(kpis.revenue).toLocaleString()} unit="MWK" />
-            <KpiCard label="Cash" value={Math.round(kpis.cash).toLocaleString()} unit="MWK" />
-            <KpiCard label="Card" value={Math.round(kpis.card).toLocaleString()} unit="MWK" />
-            <KpiCard label="Open Flags" value={kpis.openFlags} unit="" />
+            <KpiCard label="PMA Sold" value={kpis.pma.toLocaleString()} unit="L" accentColor="#60a5fa" />
+            <KpiCard label="AGO Sold" value={kpis.ago.toLocaleString()} unit="L" accentColor="#60a5fa" />
+            <KpiCard label="Revenue" value={fmtMWK(kpis.revenue)} unit="MWK" accentColor="#4ade80" />
+            <KpiCard label="Cash" value={fmtMWK(kpis.cash)} unit="MWK" accentColor="#4ade80" />
+            <KpiCard label="Card" value={fmtMWK(kpis.card)} unit="MWK" accentColor="#4ade80" />
+            <KpiCard label="Open Flags" value={kpis.openFlags} unit="" accentColor={kpis.openFlags > 0 ? '#fbbf24' : '#e5e7eb'} />
           </div>
         )}
 
@@ -309,7 +317,7 @@ export default function OwnerHome() {
                     {FLAG_TYPE_LABELS[flag.flag_type] ?? flag.flag_type}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {flag.stations?.name}{flag.shifts && ` · ${flag.shifts.shift_date} ${flag.shifts.shift_type} shift`}
+                    {flag.stations?.name}{flag.shifts && ` · ${new Date(flag.shifts.shift_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} ${flag.shifts.shift_type} shift`}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">

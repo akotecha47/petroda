@@ -199,7 +199,7 @@ export default function InvestigationAudit() {
                     {flags.map(flag => (
                       <tr key={flag.id} className="border-b border-gray-50 last:border-0">
                         <td className="px-4 py-3 text-gray-700">{flag.stations?.name ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-500 text-xs">{flag.shifts?.shift_date ?? '—'}</td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">{flag.shifts?.shift_date ? new Date(flag.shifts.shift_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
                         <td className="px-4 py-3 capitalize text-gray-500 text-xs">{flag.shifts?.shift_type ?? '—'}</td>
                         <td className="px-4 py-3 text-gray-700 text-xs">{FLAG_TYPE_LABELS[flag.flag_type] ?? flag.flag_type}</td>
                         <td className="px-4 py-3">

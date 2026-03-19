@@ -222,7 +222,7 @@ export default function VarianceLosses() {
                 {flags.map(flag => (
                   <tr key={flag.id} className="border-b border-gray-50 last:border-0">
                     <td className="px-5 py-3 text-gray-700">{flag.stations?.name ?? '—'}</td>
-                    <td className="px-5 py-3 text-gray-500">{flag.shifts?.shift_date ?? '—'}</td>
+                    <td className="px-5 py-3 text-gray-500">{flag.shifts?.shift_date ? new Date(flag.shifts.shift_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
                     <td className="px-5 py-3 capitalize text-gray-500">{flag.shifts?.shift_type ?? '—'}</td>
                     <td className="px-5 py-3 text-gray-700">{FLAG_TYPE_LABELS[flag.flag_type] ?? flag.flag_type}</td>
                     <td className="px-5 py-3">
@@ -271,7 +271,7 @@ export default function VarianceLosses() {
                 {varianceRows.map(r => (
                   <tr key={r.shiftId} className="border-b border-gray-50 last:border-0">
                     <td className="px-5 py-3 text-gray-700">{r.station}</td>
-                    <td className="px-5 py-3 text-gray-700">{r.date}</td>
+                    <td className="px-5 py-3 text-gray-700">{new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                     <td className="px-5 py-3 capitalize text-gray-500">{r.shiftType}</td>
                     <td className="px-5 py-3 text-right tabular-nums text-gray-700">{Math.round(r.expected).toLocaleString()}</td>
                     <td className="px-5 py-3 text-right tabular-nums text-gray-700">{Math.round(r.actual).toLocaleString()}</td>

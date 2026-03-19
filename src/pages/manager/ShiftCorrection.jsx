@@ -105,8 +105,8 @@ export default function ShiftCorrection() {
             <ReadOnlyField label="Attendant" value={original.attendant_name} />
             <ReadOnlyField label="PMA Litres" value={original.pma_litres_sold} />
             <ReadOnlyField label="AGO Litres" value={original.ago_litres_sold} />
-            <ReadOnlyField label="Cash Collected" value={original.cash_collected} />
-            <ReadOnlyField label="Card Collected" value={original.card_collected} />
+            <ReadOnlyField label="Cash Collected" value={original.cash_collected != null ? Number(original.cash_collected).toLocaleString() : null} />
+            <ReadOnlyField label="Card Collected" value={original.card_collected != null ? Number(original.card_collected).toLocaleString() : null} />
           </div>
         </div>
 

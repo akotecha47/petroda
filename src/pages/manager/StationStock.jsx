@@ -143,12 +143,12 @@ export default function StationStock() {
                   </p>
                   <div className="w-full h-1.5 bg-gray-100 rounded-full mb-1">
                     <div
-                      className={`h-1.5 rounded-full ${stockBarColor(pct)}`}
+                      className={`h-1.5 rounded-full ${pct > 100 ? 'bg-amber-400' : stockBarColor(pct)}`}
                       style={{ width: `${Math.min(pct, 100).toFixed(1)}%` }}
                     />
                   </div>
                   <p className={`text-xs font-medium ${stockColor(pct)}`}>
-                    {pct.toFixed(1)}% of capacity
+                    {pct.toFixed(1)}% of capacity{pct > 100 && <span className="text-amber-600 ml-1">above capacity</span>}
                   </p>
                 </div>
               ))}

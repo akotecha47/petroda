@@ -172,11 +172,11 @@ export default function SalesRevenue() {
             <span className="text-gray-400">Current prices:</span>
             <span>
               PMA <strong>{currentPrices.pma.toLocaleString()} MWK/L</strong>
-              {currentPrices.pmaDate && <span className="text-gray-400 ml-1">(since {currentPrices.pmaDate})</span>}
+              {currentPrices.pmaDate && <span className="text-gray-400 ml-1">(since {new Date(currentPrices.pmaDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})</span>}
             </span>
             <span>
               AGO <strong>{currentPrices.ago.toLocaleString()} MWK/L</strong>
-              {currentPrices.agoDate && <span className="text-gray-400 ml-1">(since {currentPrices.agoDate})</span>}
+              {currentPrices.agoDate && <span className="text-gray-400 ml-1">(since {new Date(currentPrices.agoDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})</span>}
             </span>
           </div>
         )}
@@ -209,7 +209,7 @@ export default function SalesRevenue() {
               <tbody>
                 {rows.map(r => (
                   <tr key={r.shiftId} className="border-b border-gray-50 last:border-0">
-                    <td className="px-5 py-3 text-gray-700">{r.date}</td>
+                    <td className="px-5 py-3 text-gray-700">{new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
                     <td className="px-5 py-3 text-gray-700">{r.station}</td>
                     <td className="px-5 py-3 capitalize text-gray-500">{r.shiftType}</td>
                     <td className="px-5 py-3 text-right tabular-nums text-gray-700">{r.pma.toLocaleString()}</td>

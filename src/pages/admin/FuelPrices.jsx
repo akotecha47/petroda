@@ -92,7 +92,7 @@ export default function FuelPrices() {
                     <span className="text-sm font-normal text-gray-400 ml-1">MWK/L</span>
                   </p>
                   {entry && (
-                    <p className="text-xs text-gray-400 mt-1">Since {entry.effective_from.slice(0, 10)}</p>
+                    <p className="text-xs text-gray-400 mt-1">Since {new Date(entry.effective_from).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   )}
                 </div>
               ))}
@@ -172,7 +172,7 @@ export default function FuelPrices() {
                   <tr key={p.id} className="border-b border-gray-50 last:border-0">
                     <td className="px-5 py-3 text-gray-700 uppercase font-medium">{p.fuel_type}</td>
                     <td className="px-5 py-3 text-right tabular-nums text-gray-700">{p.price_per_litre.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-gray-500">{p.effective_from?.slice(0, 16).replace('T', ' ')}</td>
+                    <td className="px-5 py-3 text-gray-500">{p.effective_from ? new Date(p.effective_from).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                     <td className="px-5 py-3 text-gray-500">{p.users?.full_name ?? '—'}</td>
                   </tr>
                 ))}
