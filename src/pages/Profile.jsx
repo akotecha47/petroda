@@ -1,44 +1,9 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { supabase } from '../lib/supabase'
 import { ROLE_HOME } from '../lib/roles'
 
 export default function Profile() {
   const { user } = useAuth()
-  const [fullName, setFullName] = useState(user?.full_name ?? '')
-  const [nameStatus, setNameStatus] = useState(null) // { ok: bool, msg: string }
-  const [password, setPassword] = useState('')
-  const [passStatus, setPassStatus] = useState(null)
-
-  async function saveName(e) {
-    e.preventDefault()
-    setNameStatus(null)
-    const { error } = await supabase
-      .from('users')
-      .update({ full_name: fullName })
-      .eq('id', user.id)
-    if (error) {
-      const msg = error.message?.toLowerCase().includes('unique')
-        ? 'Username already taken'
-        : error.message
-      setNameStatus({ ok: false, msg })
-    } else {
-      setNameStatus({ ok: true, msg: 'Username updated' })
-    }
-  }
-
-  async function savePassword(e) {
-    e.preventDefault()
-    setPassStatus(null)
-    const { error } = await supabase.auth.updateUser({ password })
-    if (error) {
-      setPassStatus({ ok: false, msg: error.message })
-    } else {
-      setPassStatus({ ok: true, msg: 'Password updated' })
-      setPassword('')
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -55,53 +20,26 @@ export default function Profile() {
         {/* Username */}
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-sm font-medium text-gray-700 mb-4">Username</h2>
-          <form onSubmit={saveName} className="space-y-3">
-            <input
-              type="text"
-              required
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-            />
-            <button
-              type="submit"
-              className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 transition-colors"
-            >
-              Save
-            </button>
-            {nameStatus && (
-              <p className={`text-sm ${nameStatus.ok ? 'text-green-600' : 'text-red-600'}`}>
-                {nameStatus.msg}
-              </p>
-            )}
-          </form>
+          <input
+            type="text"
+            readOnly
+            value={user?.full_name ?? ''}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+          />
         </div>
 
         {/* Password */}
         <div className="bg-white rounded-2xl shadow p-6">
-          <h2 className="text-sm font-medium text-gray-700 mb-4">Change password</h2>
-          <form onSubmit={savePassword} className="space-y-3">
-            <input
-              type="password"
-              required
-              placeholder="New password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
-            />
-            <button
-              type="submit"
-              className="bg-gray-900 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-700 transition-colors"
-            >
-              Save
-            </button>
-            {passStatus && (
-              <p className={`text-sm ${passStatus.ok ? 'text-green-600' : 'text-red-600'}`}>
-                {passStatus.msg}
-              </p>
-            )}
-          </form>
+          <h2 className="text-sm font-medium text-gray-700 mb-4">Password</h2>
+          <input
+            type="password"
+            readOnly
+            value="••••••••"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+          />
         </div>
+
+        <p className="text-sm text-gray-400">Contact your admin to update your account details.</p>
       </div>
     </div>
   )

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { cashBalance } from '../../lib/cashUtils'
 
 const DIRECTION_BADGE = {
   in: 'bg-green-100 text-green-700',
@@ -32,8 +31,11 @@ export default function StationCash() {
     async function load() {
       setLoading(true)
 
-      const [bal, { data: movData }] = await Promise.all([
-        cashBalance(user.station_id),
+      const [{ data: shiftData }, { data: movData }] = await Promise.all([
+        supabase
+          .from('shifts')
+          .select('id')
+          .eq('station_id', user.station_id),
         supabase
           .from('cash_movements')
           .select('id, direction, amount, movement_datetime, reference_note, category_id, recorded_by, payment_categories(name)')
@@ -41,7 +43,20 @@ export default function StationCash() {
           .order('movement_datetime', { ascending: false }),
       ])
 
-      setBalance(bal)
+      const shiftIds = (shiftData ?? []).map(s => s.id)
+      let entryData = []
+      if (shiftIds.length > 0) {
+        const { data } = await supabase
+          .from('attendant_entries')
+          .select('cash_collected, card_collected')
+          .in('shift_id', shiftIds)
+          .eq('is_corrected', false)
+        entryData = data ?? []
+      }
+
+      const totalIn = entryData.reduce((s, e) => s + (e.cash_collected ?? 0) + (e.card_collected ?? 0), 0)
+      const totalOut = (movData ?? []).filter(m => m.direction === 'out').reduce((s, m) => s + (m.amount ?? 0), 0)
+      setBalance({ balance: totalIn - totalOut, totalIn, totalOut })
 
       const recordedByIds = [...new Set((movData ?? []).map(m => m.recorded_by).filter(Boolean))]
       const nameMap = {}

@@ -87,6 +87,7 @@ export default function ShiftClose() {
   const [closingId, setClosingId] = useState(null)
   const [closingDay, setClosingDay] = useState(false)
   const [error, setError] = useState(null)
+  const [confirmDay, setConfirmDay] = useState(false)
 
   useEffect(() => {
     if (!user?.station_id) return
@@ -140,7 +141,7 @@ export default function ShiftClose() {
   }
 
   async function handleCloseDay() {
-    if (!confirm('Close the day? This confirms that both shifts are locked and the day is complete.')) return
+    setConfirmDay(false)
     setClosingDay(true)
     // Both shifts are already closed — day close is a confirmation action.
     // Extend here if a day-level record is needed in future.
@@ -192,22 +193,47 @@ export default function ShiftClose() {
 
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <h3 className="font-medium text-gray-700 mb-2">Close Day</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                {bothClosed
-                  ? 'Both shifts are closed. You may close the day.'
-                  : 'Both shifts must be closed before you can close the day.'}
-              </p>
-              <button
-                onClick={handleCloseDay}
-                disabled={!bothClosed || closingDay}
-                className={`text-sm font-medium px-6 py-2.5 rounded-lg transition-colors ${
-                  bothClosed
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                {closingDay ? 'Closing Day…' : 'Close Day'}
-              </button>
+              {shifts.length === 0 ? (
+                <p className="text-sm text-red-600">No shifts submitted today. Cannot close day.</p>
+              ) : confirmDay ? (
+                <div>
+                  <p className="text-sm text-gray-700 mb-4">Are you sure you want to close the day? Both shifts will be locked.</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleCloseDay}
+                      disabled={closingDay}
+                      className="bg-indigo-600 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    >
+                      {closingDay ? 'Closing Day…' : 'Yes, close day'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDay(false)}
+                      className="bg-white border border-gray-200 text-gray-600 text-sm font-medium px-5 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-500 mb-4">
+                    {bothClosed
+                      ? 'Both shifts are closed. You may close the day.'
+                      : 'Both shifts must be closed before you can close the day.'}
+                  </p>
+                  <button
+                    onClick={() => setConfirmDay(true)}
+                    disabled={!bothClosed || closingDay}
+                    className={`text-sm font-medium px-6 py-2.5 rounded-lg transition-colors ${
+                      bothClosed
+                        ? 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50'
+                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    Close Day
+                  </button>
+                </>
+              )}
             </div>
           </>
         )}

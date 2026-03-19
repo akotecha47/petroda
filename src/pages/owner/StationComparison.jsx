@@ -62,7 +62,7 @@ function PeriodToggle({ period, onChange }) {
 
 export default function StationComparison() {
   const { user } = useAuth()
-  const [period, setPeriod] = useState('day')
+  const [period, setPeriod] = useState('last30days')
   const [stations, setStations] = useState([])
   const [stationData, setStationData] = useState({})
   const [loading, setLoading] = useState(true)

@@ -38,7 +38,7 @@ function PeriodToggle({ period, onChange }) {
 
 export default function SalesRevenue() {
   const { user } = useAuth()
-  const [period, setPeriod] = useState('day')
+  const [period, setPeriod] = useState('last30days')
   const [stations, setStations] = useState([])
   const [stationFilter, setStationFilter] = useState('all')
   const [rows, setRows] = useState([])

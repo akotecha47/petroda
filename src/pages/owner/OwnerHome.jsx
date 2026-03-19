@@ -82,7 +82,7 @@ function priceAt(prices, fuelType, date) {
 export default function OwnerHome() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [period, setPeriod] = useState('day')
+  const [period, setPeriod] = useState('last30days')
   const [kpis, setKpis] = useState(null)
   const [stationCards, setStationCards] = useState([])
   const [criticalAlerts, setCriticalAlerts] = useState([])
