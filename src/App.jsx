@@ -28,6 +28,7 @@ import StationCash from './pages/manager/StationCash'
 import CashMovementEntry from './pages/manager/CashMovementEntry'
 import FlagsInvestigations from './pages/manager/FlagsInvestigations'
 import DipVerification from './pages/junioradmin/DipVerification'
+import StationMonitoring from './pages/junioradmin/StationMonitoring'
 
 export default function App() {
   return (
@@ -223,6 +224,14 @@ export default function App() {
           element={
             <ProtectedRoute roles={['junior_admin', 'admin', 'owner']}>
               <DipVerification />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/junior-admin/station-monitoring"
+          element={
+            <ProtectedRoute roles={['junior_admin', 'admin', 'owner']}>
+              <StationMonitoring />
             </ProtectedRoute>
           }
         />

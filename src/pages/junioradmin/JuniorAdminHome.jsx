@@ -88,9 +88,12 @@ export default function JuniorAdminHome() {
           >
             Dip Verification
           </Link>
-          <span className="bg-white border border-gray-200 text-gray-300 text-sm font-medium px-5 py-2.5 rounded-lg cursor-not-allowed">
+          <Link
+            to="/app/junior-admin/station-monitoring"
+            className="bg-white border border-gray-200 text-gray-700 text-sm font-medium px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+          >
             Station Monitoring
-          </span>
+          </Link>
         </div>
 
         <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Escalated Flags</h2>
