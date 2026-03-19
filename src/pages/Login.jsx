@@ -45,9 +45,10 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-start justify-center pt-24 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex items-start justify-center pt-24 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Petroda</h1>
+        <p className="text-sm text-gray-400 mt-1">Station Control & Reconciliation</p>
         <p className="text-sm text-gray-500 mb-6">Sign in to your account</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

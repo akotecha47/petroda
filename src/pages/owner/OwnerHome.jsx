@@ -102,6 +102,7 @@ export default function OwnerHome() {
         { count: openFlagCount },
         { data: criticalFlags },
         { data: allTanks },
+        { data: latestShiftsRaw },
       ] = await Promise.all([
         supabase.from('stations').select('id, name').eq('is_active', true).order('name'),
         supabase.from('shifts').select('id, station_id, shift_type, shift_date, status').gte('shift_date', from).lte('shift_date', to),
@@ -109,6 +110,7 @@ export default function OwnerHome() {
         supabase.from('flags_investigations').select('id', { count: 'exact', head: true }).in('status', ['detected', 'under_investigation', 'corrected']),
         supabase.from('flags_investigations').select('id, flag_type, raised_at, station_id, stations(name), shifts(shift_date, shift_type)').eq('severity', 'critical').in('status', ['detected', 'under_investigation']).order('raised_at', { ascending: false }),
         supabase.from('tanks').select('station_id, fuel_type, capacity_litres'),
+        supabase.from('shifts').select('id, station_id, shift_type, shift_date, status').order('shift_date', { ascending: false }),
       ])
 
       const shiftIds = (allShifts ?? []).map(s => s.id)
@@ -157,6 +159,22 @@ export default function OwnerHome() {
 
       const stocks = await Promise.all((stations ?? []).map(s => currentStock(s.id)))
 
+      // Latest known shift per station for last-known shift status display
+      const latestShiftDateByStation = {}
+      ;(latestShiftsRaw ?? []).forEach(s => {
+        if (!latestShiftDateByStation[s.station_id]) {
+          latestShiftDateByStation[s.station_id] = s.shift_date
+        }
+      })
+      const latestShiftsByStation = {}
+      ;(latestShiftsRaw ?? []).forEach(s => {
+        const latestDate = latestShiftDateByStation[s.station_id]
+        if (s.shift_date === latestDate) {
+          if (!latestShiftsByStation[s.station_id]) latestShiftsByStation[s.station_id] = { date: latestDate, day: null, night: null }
+          latestShiftsByStation[s.station_id][s.shift_type] = s
+        }
+      })
+
       const cards = (stations ?? []).map((s, i) => {
         const todayStationShifts = todayShifts.filter(sh => sh.station_id === s.id)
         const stationTodayEntries = todayEntries.filter(e => shiftMap[e.shift_id]?.station_id === s.id)
@@ -170,8 +188,7 @@ export default function OwnerHome() {
           pmaPct: cap.pma ? Math.round((stock.pma / cap.pma) * 100) : null,
           agoPct: cap.ago ? Math.round((stock.ago / cap.ago) * 100) : null,
           openFlags: flagsByStation[s.id] ?? 0,
-          dayShift: todayStationShifts.find(sh => sh.shift_type === 'day') ?? null,
-          nightShift: todayStationShifts.find(sh => sh.shift_type === 'night') ?? null,
+          lastShiftInfo: latestShiftsByStation[s.id] ?? null,
         }
       })
 
@@ -193,24 +210,7 @@ export default function OwnerHome() {
           <PeriodToggle period={period} onChange={setPeriod} />
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 h-24 animate-pulse" />
-            ))}
-          </div>
-        ) : kpis && (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-            <KpiCard label="PMA Sold" value={kpis.pma.toLocaleString()} unit="L" />
-            <KpiCard label="AGO Sold" value={kpis.ago.toLocaleString()} unit="L" />
-            <KpiCard label="Revenue" value={Math.round(kpis.revenue).toLocaleString()} unit="MWK" />
-            <KpiCard label="Cash" value={Math.round(kpis.cash).toLocaleString()} unit="MWK" />
-            <KpiCard label="Card" value={Math.round(kpis.card).toLocaleString()} unit="MWK" />
-            <KpiCard label="Open Flags" value={kpis.openFlags} unit="" />
-          </div>
-        )}
-
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Station Health — Today</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Live Stock Levels</h2>
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {[...Array(3)].map((_, i) => (
@@ -247,20 +247,46 @@ export default function OwnerHome() {
                     <StockBar pct={card.agoPct} />
                   </div>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  {[{ label: 'Day', shift: card.dayShift }, { label: 'Night', shift: card.nightShift }].map(({ label, shift }) => (
-                    <span
-                      key={label}
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
-                        shift ? (SHIFT_STATUS_BADGE[shift.status] ?? 'bg-gray-100 text-gray-500') : 'bg-gray-100 text-gray-400'
-                      }`}
-                    >
-                      {label}: {shift ? shift.status : 'none'}
-                    </span>
-                  ))}
-                </div>
+                {card.lastShiftInfo ? (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">
+                      {new Date(card.lastShiftInfo.date + 'T00:00:00').toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      {[{ label: 'Day', shift: card.lastShiftInfo.day }, { label: 'Night', shift: card.lastShiftInfo.night }].map(({ label, shift }) => (
+                        <span
+                          key={label}
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
+                            shift ? (SHIFT_STATUS_BADGE[shift.status] ?? 'bg-gray-100 text-gray-500') : 'bg-gray-100 text-gray-400'
+                          }`}
+                        >
+                          {label}: {shift ? shift.status : 'no shift'}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400">No shift data.</p>
+                )}
               </div>
             ))}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 h-24 animate-pulse" />
+            ))}
+          </div>
+        ) : kpis && (
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+            <KpiCard label="PMA Sold" value={kpis.pma.toLocaleString()} unit="L" />
+            <KpiCard label="AGO Sold" value={kpis.ago.toLocaleString()} unit="L" />
+            <KpiCard label="Revenue" value={Math.round(kpis.revenue).toLocaleString()} unit="MWK" />
+            <KpiCard label="Cash" value={Math.round(kpis.cash).toLocaleString()} unit="MWK" />
+            <KpiCard label="Card" value={Math.round(kpis.card).toLocaleString()} unit="MWK" />
+            <KpiCard label="Open Flags" value={kpis.openFlags} unit="" />
           </div>
         )}
 

@@ -145,6 +145,7 @@ export default function ManagerHome() {
         <span className="font-semibold text-gray-800">Petroda · Manager</span>
         <span className="text-sm font-medium text-gray-600">{stationName}</span>
         <div className="flex items-center gap-4 text-sm">
+          <span className="text-xs text-gray-300">Built by Streamline</span>
           <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">{user.full_name}</Link>
           <button onClick={signOut} className="text-gray-500 hover:text-gray-800">Sign out</button>
         </div>
