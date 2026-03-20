@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 
+const JA_NAV_LINKS = [
+  { to: '/app/junior-admin/dip-verify', label: 'Dip Verification' },
+  { to: '/app/junior-admin/station-monitoring', label: 'Station Monitoring' },
+]
+
 const FLAG_TYPE_LABELS = {
   stock_variance: 'Stock Variance',
   payment_variance: 'Payment Variance',
@@ -16,6 +21,7 @@ export default function JuniorAdminHome() {
   const [kpis, setKpis] = useState({ pendingDips: 0, openFlags: 0 })
   const [escalatedFlags, setEscalatedFlags] = useState([])
   const [loading, setLoading] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -47,13 +53,42 @@ export default function JuniorAdminHome() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <span className="font-semibold text-gray-800">Petroda · Junior Admin</span>
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-xs text-gray-300">Built by Streamline</span>
-          <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">{user.full_name}</Link>
-          <button onClick={signOut} className="text-gray-500 hover:text-gray-800">Sign out</button>
+      <div className="relative">
+        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+          <span className="font-semibold text-gray-800">Petroda · Junior Admin</span>
+          <div className="hidden md:flex items-center gap-4 text-sm">
+            <span className="text-xs text-gray-300">Built by Streamline</span>
+            <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">{user.full_name}</Link>
+            <button onClick={signOut} className="text-gray-500 hover:text-gray-800">Sign out</button>
+          </div>
+          <button
+            className="md:hidden flex flex-col gap-1 p-1"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Open menu"
+          >
+            <div className="w-5 h-0.5 bg-gray-700" />
+            <div className="w-5 h-0.5 bg-gray-700" />
+            <div className="w-5 h-0.5 bg-gray-700" />
+          </button>
         </div>
+
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 z-50">
+              {JA_NAV_LINKS.map(link => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-3 px-6 text-sm text-gray-700 border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8">

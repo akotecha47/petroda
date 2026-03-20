@@ -33,6 +33,7 @@ export default function AttendantHome() {
   const [existingEntries, setExistingEntries] = useState({ day: null, night: null })
   const [todayHistory, setTodayHistory] = useState([])
   const [loadingEntries, setLoadingEntries] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     if (!session) navigate('/login', { replace: true })
@@ -181,15 +182,40 @@ export default function AttendantHome() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <span className="font-semibold text-gray-800">Petroda · Attendant</span>
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-xs text-gray-300">Built by Streamline</span>
-          <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">
-            {user?.full_name}
-          </Link>
-          <button onClick={signOut} className="text-gray-500 hover:text-gray-800">Sign out</button>
+      <div className="relative">
+        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+          <span className="font-semibold text-gray-800">Petroda · Attendant</span>
+          <div className="hidden md:flex items-center gap-4 text-sm">
+            <span className="text-xs text-gray-300">Built by Streamline</span>
+            <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">
+              {user?.full_name}
+            </Link>
+            <button onClick={signOut} className="text-gray-500 hover:text-gray-800">Sign out</button>
+          </div>
+          <button
+            className="md:hidden flex flex-col gap-1 p-1"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Open menu"
+          >
+            <div className="w-5 h-0.5 bg-gray-700" />
+            <div className="w-5 h-0.5 bg-gray-700" />
+            <div className="w-5 h-0.5 bg-gray-700" />
+          </button>
         </div>
+
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 z-50">
+              <button
+                onClick={() => { setMenuOpen(false); signOut() }}
+                className="block w-full text-left py-3 px-6 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Sign out
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Station name */}

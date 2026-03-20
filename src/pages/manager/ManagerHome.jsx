@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+
+const MANAGER_NAV_LINKS = [
+  { to: '/app/manager/shifts', label: 'Review Shift Entries' },
+  { to: '/app/manager/stock', label: 'Station Stock' },
+  { to: '/app/manager/dip', label: 'Record Dip' },
+  { to: '/app/manager/delivery', label: 'Record Delivery' },
+  { to: '/app/manager/cash', label: 'Cash Log' },
+  { to: '/app/manager/flags', label: 'Flags' },
+  { to: '/app/manager/close', label: 'Close Day' },
+]
 import { supabase } from '../../lib/supabase'
 import { todayISO } from '../../lib/shiftUtils'
 
@@ -54,10 +64,12 @@ function ShiftCard({ label, shift }) {
 
 export default function ManagerHome() {
   const { user, signOut } = useAuth()
+  const navigate = useNavigate()
   const [stationName, setStationName] = useState('')
   const [kpis, setKpis] = useState({ pma: 0, ago: 0, cash: 0, card: 0 })
   const [shifts, setShifts] = useState({ day: null, night: null })
   const [loading, setLoading] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     if (!user?.station_id) return
@@ -141,14 +153,43 @@ export default function ManagerHome() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <span className="font-semibold text-gray-800">Petroda · Manager</span>
-        <span className="text-sm font-medium text-gray-600">{stationName}</span>
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-xs text-gray-300">Built by Streamline</span>
-          <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">{user.full_name}</Link>
-          <button onClick={signOut} className="text-gray-500 hover:text-gray-800">Sign out</button>
+      <div className="relative">
+        <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+          <span className="font-semibold text-gray-800">Petroda · Manager</span>
+          <div className="hidden md:flex items-center gap-4 text-sm">
+            <span className="text-sm font-medium text-gray-600">{stationName}</span>
+            <span className="text-xs text-gray-300">Built by Streamline</span>
+            <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">{user.full_name}</Link>
+            <button onClick={signOut} className="text-gray-500 hover:text-gray-800">Sign out</button>
+          </div>
+          <button
+            className="md:hidden flex flex-col gap-1 p-1"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Open menu"
+          >
+            <div className="w-5 h-0.5 bg-gray-700" />
+            <div className="w-5 h-0.5 bg-gray-700" />
+            <div className="w-5 h-0.5 bg-gray-700" />
+          </button>
         </div>
+
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+            <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 z-50">
+              {MANAGER_NAV_LINKS.map(link => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-3 px-6 text-sm text-gray-700 border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8">
