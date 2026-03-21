@@ -21,18 +21,8 @@ function priceAt(prices, fuelType, date) {
   return relevant[0]?.price_per_litre ?? 0
 }
 
-function getHighlightClass(values, i, best) {
-  const max = Math.max(...values)
-  const min = Math.min(...values)
-  if (max === min) return 'text-gray-700'
-  if (best === 'max') {
-    if (values[i] === max) return 'text-green-700 font-semibold'
-    if (values[i] === min) return 'text-red-600'
-  } else {
-    if (values[i] === min) return 'text-green-700 font-semibold'
-    if (values[i] === max) return 'text-red-600'
-  }
-  return 'text-gray-700'
+function getHighlightClass(values, i) {
+  return i === 0 ? 'text-gray-900 font-medium' : 'text-gray-400'
 }
 
 function PeriodToggle({ period, onChange }) {
@@ -126,7 +116,7 @@ export default function StationComparison() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-slate-100 pb-20 md:pb-0">
       <OwnerNav />
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
@@ -154,7 +144,7 @@ export default function StationComparison() {
                         return (
                           <div key={row.key} className="flex items-center justify-between">
                             <span className="text-xs text-gray-500">{row.label}</span>
-                            <span className={`tabular-nums text-sm font-medium ${getHighlightClass(values, i, row.best)}`}>
+                            <span className={`tabular-nums text-sm font-medium ${getHighlightClass(values, i)}`}>
                               {row.unit === '%' ? `${val}%` : Math.round(val).toLocaleString()}
                               {row.unit && row.unit !== '%' && (
                                 <span className="text-xs text-gray-400 ml-1">{row.unit}</span>
@@ -191,7 +181,7 @@ export default function StationComparison() {
                         {values.map((val, i) => (
                           <td
                             key={i}
-                            className={`text-right px-5 py-3 tabular-nums ${getHighlightClass(values, i, row.best)}`}
+                            className={`text-right px-5 py-3 tabular-nums ${getHighlightClass(values, i)}`}
                           >
                             {row.unit === '%'
                               ? `${val}%`

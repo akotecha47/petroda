@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { currentStock } from '../../lib/stockUtils'
 import { getDemoAdjustedRange } from '../../lib/demoOffset'
 import OwnerNav from '../../components/owner/OwnerNav'
+import { ResponsiveContainer, LineChart, Line } from 'recharts'
 
 const FLAG_TYPE_LABELS = {
   stock_variance: 'Stock Variance',
@@ -25,7 +26,7 @@ function fmtMWK(n) {
   return Math.round(n).toLocaleString()
 }
 
-function KpiCard({ label, value, unit, accentColor }) {
+function KpiCard({ label, value, unit, accentColor, sparklineData, sparklineColor }) {
   return (
     <div
       className="bg-white rounded-xl border border-gray-200 p-5"
@@ -36,6 +37,15 @@ function KpiCard({ label, value, unit, accentColor }) {
         {value}
         {unit && <span className="text-sm font-normal text-gray-400 ml-1">{unit}</span>}
       </p>
+      {sparklineData?.length > 0 && (
+        <div className="hidden md:block mt-2" style={{ height: 32 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={sparklineData}>
+              <Line type="monotone" dataKey="v" stroke={sparklineColor ?? '#9ca3af'} strokeWidth={1.5} dot={false} isAnimationActive={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   )
 }
@@ -88,6 +98,7 @@ export default function OwnerHome() {
   const [stationCards, setStationCards] = useState([])
   const [criticalAlerts, setCriticalAlerts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [sparkData, setSparkData] = useState([])
 
   useEffect(() => {
     if (!user) return
@@ -119,6 +130,31 @@ export default function OwnerHome() {
       const entries = shiftIds.length > 0
         ? ((await supabase.from('attendant_entries').select('shift_id, pma_litres_sold, ago_litres_sold, cash_collected, card_collected').in('shift_id', shiftIds)).data ?? [])
         : []
+
+      // Sparkline: always fetch last 7 days of seed data
+      const sparkRange = getDemoAdjustedRange('last7days')
+      const { data: sparkShifts } = await supabase
+        .from('shifts')
+        .select('id, shift_date')
+        .gte('shift_date', sparkRange.from)
+        .lte('shift_date', sparkRange.to)
+      const sparkShiftIds = (sparkShifts ?? []).map(s => s.id)
+      const sparkEntries = sparkShiftIds.length > 0
+        ? ((await supabase.from('attendant_entries').select('shift_id, pma_litres_sold, ago_litres_sold, cash_collected, card_collected').in('shift_id', sparkShiftIds)).data ?? [])
+        : []
+      const sparkShiftMap = {}
+      sparkShifts?.forEach(s => { sparkShiftMap[s.id] = s })
+      const sparkByDate = {}
+      sparkEntries.forEach(e => {
+        const date = sparkShiftMap[e.shift_id]?.shift_date
+        if (!date) return
+        if (!sparkByDate[date]) sparkByDate[date] = { revenue: 0, cash: 0, card: 0 }
+        sparkByDate[date].revenue += (e.pma_litres_sold ?? 0) * priceAt(allPrices, 'PMA', date)
+                                   + (e.ago_litres_sold ?? 0) * priceAt(allPrices, 'AGO', date)
+        sparkByDate[date].cash += e.cash_collected ?? 0
+        sparkByDate[date].card += e.card_collected ?? 0
+      })
+      setSparkData(Object.keys(sparkByDate).sort().map(date => ({ date, ...sparkByDate[date] })))
 
       const shiftMap = {}
       allShifts?.forEach(s => { shiftMap[s.id] = s })
@@ -203,7 +239,7 @@ export default function OwnerHome() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-slate-100 pb-20 md:pb-0">
       <OwnerNav />
       <div className="max-w-6xl mx-auto px-6 py-8">
 
@@ -285,9 +321,9 @@ export default function OwnerHome() {
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
             <KpiCard label="PMA Sold" value={kpis.pma.toLocaleString()} unit="L" accentColor="#60a5fa" />
             <KpiCard label="AGO Sold" value={kpis.ago.toLocaleString()} unit="L" accentColor="#60a5fa" />
-            <KpiCard label="Revenue" value={fmtMWK(kpis.revenue)} unit="MWK" accentColor="#4ade80" />
-            <KpiCard label="Cash" value={fmtMWK(kpis.cash)} unit="MWK" accentColor="#4ade80" />
-            <KpiCard label="Card" value={fmtMWK(kpis.card)} unit="MWK" accentColor="#4ade80" />
+            <KpiCard label="Revenue" value={fmtMWK(kpis.revenue)} unit="MWK" accentColor="#4ade80" sparklineData={sparkData.map(d => ({ v: d.revenue }))} sparklineColor="#4ade80" />
+            <KpiCard label="Cash" value={fmtMWK(kpis.cash)} unit="MWK" accentColor="#4ade80" sparklineData={sparkData.map(d => ({ v: d.cash }))} sparklineColor="#4ade80" />
+            <KpiCard label="Card" value={fmtMWK(kpis.card)} unit="MWK" accentColor="#4ade80" sparklineData={sparkData.map(d => ({ v: d.card }))} sparklineColor="#4ade80" />
             <KpiCard label="Open Flags" value={kpis.openFlags} unit="" accentColor={kpis.openFlags > 0 ? '#fbbf24' : '#e5e7eb'} />
           </div>
         )}

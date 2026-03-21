@@ -25,12 +25,6 @@ const STATUS_BADGE = {
   escalated: 'bg-red-100 text-red-700',
 }
 
-function priceAt(prices, fuelType, date) {
-  const ft = fuelType.toUpperCase()
-  const relevant = (prices ?? []).filter(p => p.fuel_type === ft && p.effective_from <= date)
-  relevant.sort((a, b) => b.effective_from.localeCompare(a.effective_from))
-  return relevant[0]?.price_per_litre ?? 0
-}
 
 function PeriodToggle({ period, onChange }) {
   return (
@@ -56,7 +50,6 @@ export default function VarianceLosses() {
   const [stations, setStations] = useState([])
   const [stationFilter, setStationFilter] = useState('all')
   const [flags, setFlags] = useState([])
-  const [varianceRows, setVarianceRows] = useState([])
   const [summary, setSummary] = useState({ totalVariance: 0, totalFlags: 0, criticalFlags: 0 })
   const [loading, setLoading] = useState(true)
 
@@ -82,56 +75,11 @@ export default function VarianceLosses() {
         flagsQuery = flagsQuery.eq('station_id', stationFilter)
       }
 
-      const [{ data: flagData }, { data: allShifts }, { data: allPrices }] = await Promise.all([
-        flagsQuery,
-        supabase.from('shifts').select('id, station_id, shift_type, shift_date, stations(name)').gte('shift_date', from).lte('shift_date', to),
-        supabase.from('fuel_prices').select('fuel_type, price_per_litre, effective_from').order('effective_from', { ascending: false }),
-      ])
+      const { data: flagData } = await flagsQuery
 
-      let filteredShifts = allShifts ?? []
-      if (stationFilter !== 'all') {
-        filteredShifts = filteredShifts.filter(s => s.station_id === stationFilter)
-      }
-
-      const shiftIds = filteredShifts.map(s => s.id)
-      const entries = shiftIds.length > 0
-        ? ((await supabase.from('attendant_entries').select('shift_id, pma_litres_sold, ago_litres_sold, cash_collected, card_collected').in('shift_id', shiftIds)).data ?? [])
-        : []
-
-      const entriesByShift = {}
-      entries.forEach(e => {
-        if (!entriesByShift[e.shift_id]) entriesByShift[e.shift_id] = []
-        entriesByShift[e.shift_id].push(e)
-      })
-
-      const rows = filteredShifts
-        .filter(s => entriesByShift[s.id]?.length > 0)
-        .map(s => {
-          const shiftEntries = entriesByShift[s.id]
-          const pmaP = priceAt(allPrices, 'PMA', s.shift_date)
-          const agoP = priceAt(allPrices, 'AGO', s.shift_date)
-          const pma = shiftEntries.reduce((sum, e) => sum + (e.pma_litres_sold ?? 0), 0)
-          const ago = shiftEntries.reduce((sum, e) => sum + (e.ago_litres_sold ?? 0), 0)
-          const cash = shiftEntries.reduce((sum, e) => sum + (e.cash_collected ?? 0), 0)
-          const card = shiftEntries.reduce((sum, e) => sum + (e.card_collected ?? 0), 0)
-          const expected = pma * pmaP + ago * agoP
-          const actual = cash + card
-          const varianceMWK = expected - actual
-          const variancePct = expected > 0 ? (varianceMWK / expected * 100) : 0
-          return {
-            shiftId: s.id,
-            date: s.shift_date,
-            station: s.stations?.name ?? '',
-            shiftType: s.shift_type,
-            expected, actual, varianceMWK, variancePct,
-          }
-        })
-        .sort((a, b) => b.date.localeCompare(a.date))
-
-      setVarianceRows(rows)
       setFlags(flagData ?? [])
       setSummary({
-        totalVariance: rows.reduce((sum, r) => sum + r.varianceMWK, 0),
+        totalVariance: 0,
         totalFlags: (flagData ?? []).length,
         criticalFlags: (flagData ?? []).filter(f => f.severity === 'critical').length,
       })
@@ -143,7 +91,7 @@ export default function VarianceLosses() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-slate-100 pb-20 md:pb-0">
       <OwnerNav />
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -273,92 +221,6 @@ export default function VarianceLosses() {
           </>
         )}
 
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Payment Variance by Shift</h2>
-        {loading ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-5 h-32 animate-pulse" />
-        ) : varianceRows.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-5 text-sm text-gray-400">
-            No shift data for this period.
-          </div>
-        ) : (
-          <>
-            {/* Mobile: variance shift cards */}
-            <div className="md:hidden space-y-3">
-              {varianceRows.map(r => (
-                <div key={r.shiftId} className="bg-white rounded-xl border border-gray-200 p-4">
-                  <div className="flex items-center gap-2 flex-wrap mb-3">
-                    <span className="font-medium text-gray-800 text-sm">{r.station}</span>
-                    <span className="text-gray-500 text-xs">
-                      {new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    </span>
-                    <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
-                      r.shiftType === 'day' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-                    }`}>
-                      {r.shiftType}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-                    <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Expected</p>
-                      <p className="tabular-nums text-gray-700">{Math.round(r.expected).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Collected</p>
-                      <p className="tabular-nums text-gray-700">{Math.round(r.actual).toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Variance (MWK)</p>
-                      <p className={`tabular-nums font-medium text-sm ${r.varianceMWK > 0 ? 'text-red-600' : 'text-green-700'}`}>
-                        {r.varianceMWK > 0 ? '+' : ''}{Math.round(r.varianceMWK).toLocaleString()}
-                      </p>
-                    </div>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      r.variancePct > 2 ? 'bg-red-100 text-red-700' : r.variancePct < -0.5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
-                    }`}>
-                      {r.variancePct > 0 ? '+' : ''}{r.variancePct.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop: variance table */}
-            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Date</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Shift</th>
-                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Expected</th>
-                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Collected</th>
-                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Variance (MWK)</th>
-                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Variance %</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {varianceRows.map(r => (
-                    <tr key={r.shiftId} className="border-b border-gray-50 last:border-0">
-                      <td className="px-5 py-3 text-gray-700">{r.station}</td>
-                      <td className="px-5 py-3 text-gray-700">{new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
-                      <td className="px-5 py-3 capitalize text-gray-500">{r.shiftType}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-gray-700">{Math.round(r.expected).toLocaleString()}</td>
-                      <td className="px-5 py-3 text-right tabular-nums text-gray-700">{Math.round(r.actual).toLocaleString()}</td>
-                      <td className={`px-5 py-3 text-right tabular-nums font-medium ${r.varianceMWK > 0 ? 'text-red-600' : 'text-green-700'}`}>
-                        {r.varianceMWK > 0 ? '+' : ''}{Math.round(r.varianceMWK).toLocaleString()}
-                      </td>
-                      <td className={`px-5 py-3 text-right tabular-nums font-medium ${r.variancePct > 2 ? 'text-red-600' : r.variancePct < -0.5 ? 'text-amber-600' : 'text-green-700'}`}>
-                        {r.variancePct > 0 ? '+' : ''}{r.variancePct.toFixed(1)}%
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
       </div>
     </div>
   )
