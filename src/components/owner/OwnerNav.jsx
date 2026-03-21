@@ -9,6 +9,36 @@ const NAV_LINKS = [
   { to: '/app/owner/variance', label: 'Variance & Losses' },
 ]
 
+const TAB_ICONS = {
+  Stock: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 2C10 2 5 7.5 5 11.5a5 5 0 0010 0C15 7.5 10 2 10 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+      <path d="M7.5 12a2.5 2.5 0 005 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  ),
+  Overview: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="3" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="11" y="3" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="3" y="11" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="11" y="11" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  ),
+  Revenue: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="11" width="3" height="6" rx="0.5" fill="currentColor"/>
+      <rect x="8.5" y="7" width="3" height="10" rx="0.5" fill="currentColor"/>
+      <rect x="14" y="3" width="3" height="14" rx="0.5" fill="currentColor"/>
+    </svg>
+  ),
+  Alerts: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 2.5a5.5 5.5 0 00-5.5 5.5v3l-1 2h13l-1-2V8A5.5 5.5 0 0010 2.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+      <path d="M8.5 13v.5a1.5 1.5 0 003 0V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  ),
+}
+
 const BOTTOM_TABS = [
   { to: '/app/owner/stock', label: 'Stock' },
   { to: '/app/owner', label: 'Overview' },
@@ -61,7 +91,9 @@ export default function OwnerNav() {
               to={tab.to}
               className="flex-1 flex flex-col items-center pt-2 pb-1"
             >
-              <div className={`w-4 h-4 rounded-sm mb-1 ${active ? 'bg-gray-900' : 'bg-gray-200'}`} />
+              <span className={`mb-1 ${active ? 'text-gray-900' : 'text-gray-400'}`}>
+                {TAB_ICONS[tab.label]}
+              </span>
               <span className={`text-xs ${active ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
                 {tab.label}
               </span>
