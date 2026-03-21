@@ -149,7 +149,7 @@ export default function VarianceLosses() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <OwnerNav />
       <div className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex flex-wrap items-center gap-4 mb-6">

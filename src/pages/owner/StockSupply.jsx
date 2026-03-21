@@ -79,7 +79,7 @@ export default function StockSupply() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <OwnerNav />
       <div className="max-w-6xl mx-auto px-6 py-8">
         <h1 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-6">Stock & Supply</h1>

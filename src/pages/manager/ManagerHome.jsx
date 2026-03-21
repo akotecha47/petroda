@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 const MANAGER_NAV_LINKS = [
@@ -64,7 +64,6 @@ function ShiftCard({ label, shift }) {
 
 export default function ManagerHome() {
   const { user, signOut } = useAuth()
-  const navigate = useNavigate()
   const [stationName, setStationName] = useState('')
   const [kpis, setKpis] = useState({ pma: 0, ago: 0, cash: 0, card: 0 })
   const [shifts, setShifts] = useState({ day: null, night: null })
