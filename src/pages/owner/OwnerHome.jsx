@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { currentStock } from '../../lib/stockUtils'
+import { getDemoAdjustedRange } from '../../lib/demoOffset'
 import OwnerNav from '../../components/owner/OwnerNav'
 
 const FLAG_TYPE_LABELS = {
@@ -72,14 +73,6 @@ function StockBar({ pct }) {
   )
 }
 
-function dateRange(period) {
-  const today = new Date().toISOString().slice(0, 10)
-  if (period === 'day') return { from: today, to: today }
-  const d = new Date()
-  d.setDate(d.getDate() - (period === 'week' ? 6 : 29))
-  return { from: d.toISOString().slice(0, 10), to: today }
-}
-
 function priceAt(prices, fuelType, date) {
   const ft = fuelType.toUpperCase()
   const relevant = (prices ?? []).filter(p => p.fuel_type === ft && p.effective_from <= date)
@@ -100,8 +93,9 @@ export default function OwnerHome() {
     if (!user) return
     async function load() {
       setLoading(true)
-      const { from, to } = dateRange(period)
-      const today = new Date().toISOString().slice(0, 10)
+      const periodKey = period === 'week' ? 'last7days' : period === 'month' ? 'last30days' : period
+      const { from, to } = getDemoAdjustedRange(periodKey)
+      const today = to
 
       const [
         { data: stations },

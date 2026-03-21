@@ -1,15 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { getDemoAdjustedRange } from '../../lib/demoOffset'
 import OwnerNav from '../../components/owner/OwnerNav'
-
-function dateRange(period) {
-  const today = new Date().toISOString().slice(0, 10)
-  if (period === 'day') return { from: today, to: today }
-  const d = new Date()
-  d.setDate(d.getDate() - (period === 'week' ? 6 : 29))
-  return { from: d.toISOString().slice(0, 10), to: today }
-}
 
 function priceAt(prices, fuelType, date) {
   const ft = fuelType.toUpperCase()
@@ -55,7 +48,8 @@ export default function SalesRevenue() {
     if (!user) return
     async function load() {
       setLoading(true)
-      const { from, to } = dateRange(period)
+      const periodKey = period === 'week' ? 'last7days' : period === 'month' ? 'last30days' : period
+      const { from, to } = getDemoAdjustedRange(periodKey)
 
       const [{ data: allShifts }, { data: allPrices }] = await Promise.all([
         supabase.from('shifts').select('id, station_id, shift_type, shift_date, stations(name)').gte('shift_date', from).lte('shift_date', to),
@@ -109,9 +103,9 @@ export default function SalesRevenue() {
       setRows(tableRows)
       setSummary({ total: totalRevenue, pma: pmaRevenue, ago: agoRevenue })
 
-      const today = new Date().toISOString().slice(0, 10)
-      const pmaEntry = (allPrices ?? []).find(p => p.fuel_type === 'PMA' && p.effective_from <= today)
-      const agoEntry = (allPrices ?? []).find(p => p.fuel_type === 'AGO' && p.effective_from <= today)
+      const seedDate = getDemoAdjustedRange('day').from
+      const pmaEntry = (allPrices ?? []).find(p => p.fuel_type === 'PMA' && p.effective_from <= seedDate)
+      const agoEntry = (allPrices ?? []).find(p => p.fuel_type === 'AGO' && p.effective_from <= seedDate)
       setCurrentPrices({
         pma: pmaEntry?.price_per_litre ?? 0,
         ago: agoEntry?.price_per_litre ?? 0,

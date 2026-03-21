@@ -183,102 +183,194 @@ export default function UserManagement() {
         {loading ? (
           <div className="bg-white rounded-xl border border-gray-200 p-5 h-32 animate-pulse" />
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Name</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Username</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Role</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
-                  <th className="text-center px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Active</th>
-                  <th className="px-5 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u.id} className="border-b border-gray-50 last:border-0">
-                    {editId === u.id ? (
-                      <>
-                        <td className="px-5 py-2">
-                          <input
-                            value={editForm.full_name}
-                            onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
-                            className="border border-gray-200 rounded px-2 py-1 text-sm w-full"
-                          />
-                        </td>
-                        <td className="px-5 py-2">
-                          <input
-                            value={editForm.username}
-                            onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))}
-                            className="border border-gray-200 rounded px-2 py-1 text-sm w-full"
-                          />
-                        </td>
-                        <td className="px-5 py-2">
+          <>
+            {/* Mobile: user cards */}
+            <div className="md:hidden space-y-3">
+              {users.map(u => (
+                <div key={u.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                  {editId === u.id ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-400 mb-1">Full Name</label>
+                        <input
+                          value={editForm.full_name}
+                          onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-400 mb-1">Username</label>
+                        <input
+                          value={editForm.username}
+                          onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))}
+                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-400 mb-1">Role</label>
                           <select
                             value={editForm.role}
                             onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
-                            className="border border-gray-200 rounded px-2 py-1 text-sm bg-white"
+                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white w-full"
                           >
                             {ROLES.map(r => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
                           </select>
-                        </td>
-                        <td className="px-5 py-2">
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-400 mb-1">Station</label>
                           <select
                             value={editForm.station_id}
                             onChange={e => setEditForm(f => ({ ...f, station_id: e.target.value }))}
-                            className="border border-gray-200 rounded px-2 py-1 text-sm bg-white"
+                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white w-full"
                           >
                             <option value="">— None —</option>
                             {stations.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                           </select>
-                        </td>
-                        <td className="px-5 py-2 text-center">
-                          <input
-                            type="checkbox"
-                            checked={editForm.is_active}
-                            onChange={e => setEditForm(f => ({ ...f, is_active: e.target.checked }))}
-                          />
-                        </td>
-                        <td className="px-5 py-2 text-right whitespace-nowrap">
-                          <button
-                            onClick={() => handleEditSave(u.id)}
-                            disabled={editSaving}
-                            className="text-xs px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-700 disabled:opacity-50 mr-2"
-                          >
-                            {editSaving ? '…' : 'Save'}
-                          </button>
-                          <button onClick={() => setEditId(null)} className="text-xs text-gray-400 hover:text-gray-700">Cancel</button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td className="px-5 py-3 text-gray-800 font-medium">{u.full_name}</td>
-                        <td className="px-5 py-3 text-gray-500">{u.username}</td>
-                        <td className="px-5 py-3">
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${ROLE_BADGE[u.role] ?? 'bg-gray-100 text-gray-500'}`}>
-                            {u.role.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-gray-500">{u.stations?.name ?? '—'}</td>
-                        <td className="px-5 py-3 text-center">
-                          <button
-                            onClick={() => handleToggleActive(u)}
-                            className={`w-8 h-4 rounded-full transition-colors ${u.is_active ? 'bg-green-500' : 'bg-gray-200'}`}
-                          >
-                            <span className={`block w-3 h-3 rounded-full bg-white shadow transition-transform mx-0.5 ${u.is_active ? 'translate-x-4' : ''}`} />
-                          </button>
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <button onClick={() => startEdit(u)} className="text-xs text-gray-400 hover:text-gray-700 underline">Edit</button>
-                        </td>
-                      </>
-                    )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={editForm.is_active}
+                          onChange={e => setEditForm(f => ({ ...f, is_active: e.target.checked }))}
+                        />
+                        <label className="text-sm text-gray-600">Active</label>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditSave(u.id)}
+                          disabled={editSaving}
+                          className="flex-1 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                        >
+                          {editSaving ? '…' : 'Save'}
+                        </button>
+                        <button onClick={() => setEditId(null)} className="px-4 py-2 text-sm text-gray-400 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-800 text-sm truncate">{u.full_name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5 truncate">{u.username}</p>
+                        <p className="text-xs text-gray-500 mt-1">{u.stations?.name ?? '—'}</p>
+                        <span className={`inline-block mt-1.5 text-xs px-2.5 py-1 rounded-full font-medium capitalize ${ROLE_BADGE[u.role] ?? 'bg-gray-100 text-gray-500'}`}>
+                          {u.role.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleToggleActive(u)}
+                          className={`w-8 h-4 rounded-full transition-colors ${u.is_active ? 'bg-green-500' : 'bg-gray-200'}`}
+                        >
+                          <span className={`block w-3 h-3 rounded-full bg-white shadow transition-transform mx-0.5 ${u.is_active ? 'translate-x-4' : ''}`} />
+                        </button>
+                        <button onClick={() => startEdit(u)} className="text-xs text-gray-400 hover:text-gray-700 underline">Edit</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: users table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Name</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Username</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Role</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
+                    <th className="text-center px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Active</th>
+                    <th className="px-5 py-3" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {users.map(u => (
+                    <tr key={u.id} className="border-b border-gray-50 last:border-0">
+                      {editId === u.id ? (
+                        <>
+                          <td className="px-5 py-2">
+                            <input
+                              value={editForm.full_name}
+                              onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
+                              className="border border-gray-200 rounded px-2 py-1 text-sm w-full"
+                            />
+                          </td>
+                          <td className="px-5 py-2">
+                            <input
+                              value={editForm.username}
+                              onChange={e => setEditForm(f => ({ ...f, username: e.target.value }))}
+                              className="border border-gray-200 rounded px-2 py-1 text-sm w-full"
+                            />
+                          </td>
+                          <td className="px-5 py-2">
+                            <select
+                              value={editForm.role}
+                              onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
+                              className="border border-gray-200 rounded px-2 py-1 text-sm bg-white"
+                            >
+                              {ROLES.map(r => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
+                            </select>
+                          </td>
+                          <td className="px-5 py-2">
+                            <select
+                              value={editForm.station_id}
+                              onChange={e => setEditForm(f => ({ ...f, station_id: e.target.value }))}
+                              className="border border-gray-200 rounded px-2 py-1 text-sm bg-white"
+                            >
+                              <option value="">— None —</option>
+                              {stations.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                          </td>
+                          <td className="px-5 py-2 text-center">
+                            <input
+                              type="checkbox"
+                              checked={editForm.is_active}
+                              onChange={e => setEditForm(f => ({ ...f, is_active: e.target.checked }))}
+                            />
+                          </td>
+                          <td className="px-5 py-2 text-right whitespace-nowrap">
+                            <button
+                              onClick={() => handleEditSave(u.id)}
+                              disabled={editSaving}
+                              className="text-xs px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-700 disabled:opacity-50 mr-2"
+                            >
+                              {editSaving ? '…' : 'Save'}
+                            </button>
+                            <button onClick={() => setEditId(null)} className="text-xs text-gray-400 hover:text-gray-700">Cancel</button>
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="px-5 py-3 text-gray-800 font-medium">{u.full_name}</td>
+                          <td className="px-5 py-3 text-gray-500">{u.username}</td>
+                          <td className="px-5 py-3">
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${ROLE_BADGE[u.role] ?? 'bg-gray-100 text-gray-500'}`}>
+                              {u.role.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-gray-500">{u.stations?.name ?? '—'}</td>
+                          <td className="px-5 py-3 text-center">
+                            <button
+                              onClick={() => handleToggleActive(u)}
+                              className={`w-8 h-4 rounded-full transition-colors ${u.is_active ? 'bg-green-500' : 'bg-gray-200'}`}
+                            >
+                              <span className={`block w-3 h-3 rounded-full bg-white shadow transition-transform mx-0.5 ${u.is_active ? 'translate-x-4' : ''}`} />
+                            </button>
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            <button onClick={() => startEdit(u)} className="text-xs text-gray-400 hover:text-gray-700 underline">Edit</button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

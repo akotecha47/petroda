@@ -123,7 +123,70 @@ export default function StationManagement() {
         {loading ? (
           <div className="bg-white rounded-xl border border-gray-200 p-5 h-32 animate-pulse" />
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <>
+            {/* Mobile: station cards */}
+            <div className="md:hidden space-y-3">
+              {stations.map(s => {
+                const stationTanks = tanks.filter(t => t.station_id === s.id)
+                return (
+                  <div key={s.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                    {editId === s.id ? (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-400 mb-1">Station Name</label>
+                          <input
+                            value={editForm.name}
+                            onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-400 mb-1">Location</label>
+                          <input
+                            value={editForm.location}
+                            onChange={e => setEditForm(f => ({ ...f, location: e.target.value }))}
+                            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditSave(s.id)}
+                            disabled={editSaving}
+                            className="flex-1 py-2 bg-gray-900 text-white text-sm rounded-lg hover:bg-gray-700 disabled:opacity-50"
+                          >
+                            {editSaving ? '…' : 'Save'}
+                          </button>
+                          <button onClick={() => setEditId(null)} className="px-4 py-2 text-sm text-gray-400 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium text-gray-800 text-sm">{s.name}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{s.location ?? '—'}</p>
+                          <p className="text-xs text-gray-500 mt-1">{stationTanks.length} tank{stationTanks.length !== 1 ? 's' : ''}</p>
+                          <span className={`inline-block mt-1.5 text-xs px-2 py-0.5 rounded-full ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                            {s.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => handleToggleActive(s)}
+                            className={`w-8 h-4 rounded-full transition-colors ${s.is_active ? 'bg-green-500' : 'bg-gray-200'}`}
+                          >
+                            <span className={`block w-3 h-3 rounded-full bg-white shadow transition-transform mx-0.5 ${s.is_active ? 'translate-x-4' : ''}`} />
+                          </button>
+                          <button onClick={() => startEdit(s)} className="text-xs text-gray-400 hover:text-gray-700 underline">Edit</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Desktop: stations table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
@@ -237,7 +300,8 @@ export default function StationManagement() {
                 })}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>

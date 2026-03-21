@@ -13,6 +13,7 @@ const MANAGER_NAV_LINKS = [
 ]
 import { supabase } from '../../lib/supabase'
 import { todayISO } from '../../lib/shiftUtils'
+import { getDemoAdjustedRange } from '../../lib/demoOffset'
 
 const STATUS_BADGE = {
   open: 'bg-blue-100 text-blue-700',
@@ -84,7 +85,7 @@ export default function ManagerHome() {
     if (!user?.station_id) return
     async function load() {
       setLoading(true)
-      const today = todayISO()
+      const today = getDemoAdjustedRange('day').from
 
       const { data: shiftData } = await supabase
         .from('shifts')

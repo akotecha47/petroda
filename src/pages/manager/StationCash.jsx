@@ -90,13 +90,13 @@ export default function StationCash() {
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         {loading ? (
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-200 h-24 animate-pulse" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             {[
               { label: 'Balance', value: balance.balance, color: balance.balance >= 0 ? 'text-gray-900' : 'text-red-600' },
               { label: 'Total In', value: balance.totalIn, color: 'text-green-700' },
@@ -130,7 +130,32 @@ export default function StationCash() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+        {/* Mobile: movement cards */}
+        <div className="md:hidden space-y-3 mb-6">
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-sm text-gray-400">No movements recorded</div>
+          ) : filtered.map(m => (
+            <div key={m.id} className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium uppercase ${DIRECTION_BADGE[m.direction] ?? 'bg-gray-100 text-gray-500'}`}>
+                  {m.direction}
+                </span>
+                <span className="text-sm text-gray-700">{m.payment_categories?.name ?? '—'}</span>
+                <span className="ml-auto text-lg font-bold text-gray-900 tabular-nums">
+                  {fmt(m.amount ?? 0)}
+                  <span className="text-xs font-normal text-gray-400 ml-1">MWK</span>
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs text-gray-400">
+                <span>{m.reference_note || '—'} · {m.recordedByName}</span>
+                <span>{new Date(m.movement_datetime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: movements table */}
+        <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">

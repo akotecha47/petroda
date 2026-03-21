@@ -132,7 +132,7 @@ export default function FlagsInvestigations() {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 mb-6 md:flex-row md:items-center md:justify-between">
           <div className="flex gap-2">
             {['all', 'open', 'resolved'].map(f => (
               <button

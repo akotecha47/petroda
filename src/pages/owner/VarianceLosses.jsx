@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { getDemoAdjustedRange } from '../../lib/demoOffset'
 import OwnerNav from '../../components/owner/OwnerNav'
 
 const FLAG_TYPE_LABELS = {
@@ -22,14 +23,6 @@ const STATUS_BADGE = {
   corrected: 'bg-gray-100 text-gray-600',
   resolved: 'bg-green-100 text-green-700',
   escalated: 'bg-red-100 text-red-700',
-}
-
-function dateRange(period) {
-  const today = new Date().toISOString().slice(0, 10)
-  if (period === 'day') return { from: today, to: today }
-  const d = new Date()
-  d.setDate(d.getDate() - (period === 'week' ? 6 : 29))
-  return { from: d.toISOString().slice(0, 10), to: today }
 }
 
 function priceAt(prices, fuelType, date) {
@@ -76,7 +69,8 @@ export default function VarianceLosses() {
     if (!user) return
     async function load() {
       setLoading(true)
-      const { from, to } = dateRange(period)
+      const periodKey = period === 'week' ? 'last7days' : period === 'month' ? 'last30days' : period
+      const { from, to } = getDemoAdjustedRange(periodKey)
 
       let flagsQuery = supabase
         .from('flags_investigations')

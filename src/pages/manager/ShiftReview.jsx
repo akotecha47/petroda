@@ -131,43 +131,53 @@ export default function ShiftReview() {
             <p className="text-gray-400 text-sm">No entries for {date}</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Shift</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Attendant</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">PMA (L)</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">AGO (L)</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Cash</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Card</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Expected</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Variance</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Submitted</th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {rows.map(row => (
-                  <tr key={row.id} className={row.is_corrected ? 'bg-amber-50' : 'hover:bg-gray-50'}>
-                    <td className="px-4 py-3 capitalize text-gray-700">{row.shift_type}</td>
-                    <td className="px-4 py-3 text-gray-700">{row.attendant_name}</td>
-                    <td className="px-4 py-3 text-right text-gray-700">{(row.pma_litres_sold ?? 0).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-gray-700">{(row.ago_litres_sold ?? 0).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-gray-700">{(row.cash_collected ?? 0).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-gray-700">{(row.card_collected ?? 0).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-right text-gray-700">
-                      {row.expected.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                    </td>
-                    <td className={`px-4 py-3 text-right font-medium ${varianceColor(row.variancePct)}`}>
-                      {row.variancePct > 0 ? '+' : ''}{row.variancePct.toFixed(1)}%
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
+          <>
+            {/* Mobile: entry cards */}
+            <div className="md:hidden space-y-3">
+              {rows.map(row => (
+                <div key={row.id} className={`rounded-xl border p-4 ${row.is_corrected ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
+                      row.shift_type === 'day' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {row.shift_type}
+                    </span>
+                    <span className="font-medium text-gray-800 text-sm">{row.attendant_name}</span>
+                    <span className="ml-auto text-xs text-gray-400">
                       {row.submitted_at
                         ? new Date(row.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         : '—'}
-                    </td>
-                    <td className="px-4 py-3">
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">PMA</p>
+                      <p className="tabular-nums text-gray-700">{(row.pma_litres_sold ?? 0).toLocaleString()} L</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">AGO</p>
+                      <p className="tabular-nums text-gray-700">{(row.ago_litres_sold ?? 0).toLocaleString()} L</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Cash</p>
+                      <p className="tabular-nums text-gray-700">{(row.cash_collected ?? 0).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Card</p>
+                      <p className="tabular-nums text-gray-700">{(row.card_collected ?? 0).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Expected</p>
+                      <p className="tabular-nums text-sm text-gray-700">
+                        {row.expected.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${varianceColor(row.variancePct)} bg-gray-100`}>
+                        {row.variancePct > 0 ? '+' : ''}{row.variancePct.toFixed(1)}%
+                      </span>
                       {row.is_corrected ? (
                         <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">
                           Corrected
@@ -180,12 +190,69 @@ export default function ShiftReview() {
                           Correct
                         </button>
                       )}
-                    </td>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Shift</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Attendant</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">PMA (L)</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">AGO (L)</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Cash</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Card</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Expected</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Variance</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Submitted</th>
+                    <th className="px-4 py-3"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {rows.map(row => (
+                    <tr key={row.id} className={row.is_corrected ? 'bg-amber-50' : 'hover:bg-gray-50'}>
+                      <td className="px-4 py-3 capitalize text-gray-700">{row.shift_type}</td>
+                      <td className="px-4 py-3 text-gray-700">{row.attendant_name}</td>
+                      <td className="px-4 py-3 text-right text-gray-700">{(row.pma_litres_sold ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-gray-700">{(row.ago_litres_sold ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-gray-700">{(row.cash_collected ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-gray-700">{(row.card_collected ?? 0).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right text-gray-700">
+                        {row.expected.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </td>
+                      <td className={`px-4 py-3 text-right font-medium ${varianceColor(row.variancePct)}`}>
+                        {row.variancePct > 0 ? '+' : ''}{row.variancePct.toFixed(1)}%
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">
+                        {row.submitted_at
+                          ? new Date(row.submitted_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : '—'}
+                      </td>
+                      <td className="px-4 py-3">
+                        {row.is_corrected ? (
+                          <span className="text-xs px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">
+                            Corrected
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => navigate('/app/manager/correct', { state: { entry: row } })}
+                            className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-colors"
+                          >
+                            Correct
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

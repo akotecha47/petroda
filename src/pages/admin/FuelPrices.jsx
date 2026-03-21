@@ -157,28 +157,52 @@ export default function FuelPrices() {
         ) : prices.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-5 text-sm text-gray-400">No price history.</div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Fuel Type</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Price (MWK/L)</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Effective From</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Set By</th>
-                </tr>
-              </thead>
-              <tbody>
-                {prices.map(p => (
-                  <tr key={p.id} className="border-b border-gray-50 last:border-0">
-                    <td className="px-5 py-3 text-gray-700 uppercase font-medium">{p.fuel_type}</td>
-                    <td className="px-5 py-3 text-right tabular-nums text-gray-700">{p.price_per_litre.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-gray-500">{p.effective_from ? new Date(p.effective_from).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                    <td className="px-5 py-3 text-gray-500">{p.users?.full_name ?? '—'}</td>
+          <>
+            {/* Mobile: price history cards */}
+            <div className="md:hidden space-y-3">
+              {prices.map(p => (
+                <div key={p.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium uppercase ${
+                      p.fuel_type === 'PMA' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                    }`}>{p.fuel_type}</span>
+                    <span className="text-xl font-bold tabular-nums text-gray-900">
+                      {p.price_per_litre.toLocaleString()}
+                      <span className="text-xs font-normal text-gray-400 ml-1">MWK/L</span>
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    {p.effective_from ? new Date(p.effective_from).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                    {p.users?.full_name && ` · ${p.users.full_name}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: price history table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Fuel Type</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Price (MWK/L)</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Effective From</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Set By</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {prices.map(p => (
+                    <tr key={p.id} className="border-b border-gray-50 last:border-0">
+                      <td className="px-5 py-3 text-gray-700 uppercase font-medium">{p.fuel_type}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-gray-700">{p.price_per_litre.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-gray-500">{p.effective_from ? new Date(p.effective_from).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                      <td className="px-5 py-3 text-gray-500">{p.users?.full_name ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
