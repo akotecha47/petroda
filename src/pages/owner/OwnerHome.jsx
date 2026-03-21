@@ -31,7 +31,7 @@ function KpiCard({ label, value, unit, accentColor }) {
       style={accentColor ? { borderLeft: `4px solid ${accentColor}` } : undefined}
     >
       <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 leading-none">
+      <p className="text-xl md:text-2xl font-bold text-gray-900 leading-none">
         {value}
         {unit && <span className="text-sm font-normal text-gray-400 ml-1">{unit}</span>}
       </p>
@@ -46,7 +46,7 @@ function PeriodToggle({ period, onChange }) {
         <button
           key={p}
           onClick={() => onChange(p)}
-          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+          className={`flex-1 md:flex-none px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
             period === p ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
           }`}
         >
@@ -213,7 +213,7 @@ export default function OwnerHome() {
       <OwnerNav />
       <div className="max-w-6xl mx-auto px-6 py-8">
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-3 mb-6 md:flex-row md:items-center md:justify-between">
           <h1 className="text-xs font-semibold uppercase tracking-widest text-gray-400">Overview</h1>
           <PeriodToggle period={period} onChange={setPeriod} />
         </div>

@@ -145,43 +145,75 @@ export default function StationComparison() {
         ) : stations.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">No stations found.</div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide w-44">Metric</th>
-                  {stations.map(s => (
-                    <th key={s.id} className="text-right px-5 py-3 text-xs font-medium text-gray-700 uppercase tracking-wide">
-                      {s.name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {ROWS.map(row => {
-                  const values = stations.map(s => stationData[s.id]?.[row.key] ?? 0)
-                  return (
-                    <tr key={row.key} className="border-b border-gray-50 last:border-0">
-                      <td className="px-5 py-3 text-xs font-medium text-gray-500">{row.label}</td>
-                      {values.map((val, i) => (
-                        <td
-                          key={i}
-                          className={`text-right px-5 py-3 tabular-nums ${getHighlightClass(values, i, row.best)}`}
-                        >
-                          {row.unit === '%'
-                            ? `${val}%`
-                            : Math.round(val).toLocaleString()}
-                          {row.unit && row.unit !== '%' && (
-                            <span className="text-xs text-gray-400 ml-1">{row.unit}</span>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Mobile: stacked station cards */}
+            <div className="md:hidden space-y-4">
+              {stations.map((s, i) => {
+                const data = stationData[s.id] ?? {}
+                return (
+                  <div key={s.id} className="bg-white rounded-xl border border-gray-200 p-5">
+                    <p className="font-medium text-gray-800 mb-3">{s.name}</p>
+                    <div className="space-y-2">
+                      {ROWS.map(row => {
+                        const values = stations.map(st => stationData[st.id]?.[row.key] ?? 0)
+                        const val = data[row.key] ?? 0
+                        return (
+                          <div key={row.key} className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">{row.label}</span>
+                            <span className={`tabular-nums text-sm font-medium ${getHighlightClass(values, i, row.best)}`}>
+                              {row.unit === '%' ? `${val}%` : Math.round(val).toLocaleString()}
+                              {row.unit && row.unit !== '%' && (
+                                <span className="text-xs text-gray-400 ml-1">{row.unit}</span>
+                              )}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Desktop: comparison table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide w-44">Metric</th>
+                    {stations.map(s => (
+                      <th key={s.id} className="text-right px-5 py-3 text-xs font-medium text-gray-700 uppercase tracking-wide">
+                        {s.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ROWS.map(row => {
+                    const values = stations.map(s => stationData[s.id]?.[row.key] ?? 0)
+                    return (
+                      <tr key={row.key} className="border-b border-gray-50 last:border-0">
+                        <td className="px-5 py-3 text-xs font-medium text-gray-500">{row.label}</td>
+                        {values.map((val, i) => (
+                          <td
+                            key={i}
+                            className={`text-right px-5 py-3 tabular-nums ${getHighlightClass(values, i, row.best)}`}
+                          >
+                            {row.unit === '%'
+                              ? `${val}%`
+                              : Math.round(val).toLocaleString()}
+                            {row.unit && row.unit !== '%' && (
+                              <span className="text-xs text-gray-400 ml-1">{row.unit}</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

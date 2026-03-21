@@ -166,7 +166,7 @@ export default function VarianceLosses() {
           <PeriodToggle period={period} onChange={setPeriod} />
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {loading ? (
             [...Array(3)].map((_, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 h-24 animate-pulse" />
@@ -204,46 +204,79 @@ export default function VarianceLosses() {
             No flags for this period.
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto mb-8">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Date</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Shift</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Flag Type</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Severity</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Status</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Raised</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Resolution</th>
-                </tr>
-              </thead>
-              <tbody>
-                {flags.map(flag => (
-                  <tr key={flag.id} className="border-b border-gray-50 last:border-0">
-                    <td className="px-5 py-3 text-gray-700">{flag.stations?.name ?? '—'}</td>
-                    <td className="px-5 py-3 text-gray-500">{flag.shifts?.shift_date ? new Date(flag.shifts.shift_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
-                    <td className="px-5 py-3 capitalize text-gray-500">{flag.shifts?.shift_type ?? '—'}</td>
-                    <td className="px-5 py-3 text-gray-700">{FLAG_TYPE_LABELS[flag.flag_type] ?? flag.flag_type}</td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${SEVERITY_BADGE[flag.severity] ?? 'bg-gray-100 text-gray-500'}`}>
+          <>
+            {/* Mobile: flag cards */}
+            <div className="md:hidden space-y-3 mb-8">
+              {flags.map(flag => (
+                <div key={flag.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <p className="font-medium text-gray-800 text-sm">{flag.stations?.name ?? '—'}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {flag.shifts?.shift_date
+                          ? new Date(flag.shifts.shift_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                          : '—'}
+                      </p>
+                    </div>
+                    <div className="flex gap-1.5 flex-shrink-0 flex-wrap justify-end">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${SEVERITY_BADGE[flag.severity] ?? 'bg-gray-100 text-gray-500'}`}>
                         {flag.severity}
                       </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_BADGE[flag.status] ?? 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[flag.status] ?? 'bg-gray-100 text-gray-500'}`}>
                         {flag.status?.replace('_', ' ')}
                       </span>
-                    </td>
-                    <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
-                      {new Date(flag.raised_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td className="px-5 py-3 text-gray-500 text-xs">{flag.resolution_note ?? '—'}</td>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-1">{FLAG_TYPE_LABELS[flag.flag_type] ?? flag.flag_type}</p>
+                  {flag.resolution_note && (
+                    <p className="text-xs text-gray-400 mt-1">{flag.resolution_note}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: flags table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto mb-8">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Date</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Shift</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Flag Type</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Severity</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Status</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Raised</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Resolution</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {flags.map(flag => (
+                    <tr key={flag.id} className="border-b border-gray-50 last:border-0">
+                      <td className="px-5 py-3 text-gray-700">{flag.stations?.name ?? '—'}</td>
+                      <td className="px-5 py-3 text-gray-500">{flag.shifts?.shift_date ? new Date(flag.shifts.shift_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
+                      <td className="px-5 py-3 capitalize text-gray-500">{flag.shifts?.shift_type ?? '—'}</td>
+                      <td className="px-5 py-3 text-gray-700">{FLAG_TYPE_LABELS[flag.flag_type] ?? flag.flag_type}</td>
+                      <td className="px-5 py-3">
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${SEVERITY_BADGE[flag.severity] ?? 'bg-gray-100 text-gray-500'}`}>
+                          {flag.severity}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_BADGE[flag.status] ?? 'bg-gray-100 text-gray-500'}`}>
+                          {flag.status?.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-gray-500 whitespace-nowrap">
+                        {new Date(flag.raised_at).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="px-5 py-3 text-gray-500 text-xs">{flag.resolution_note ?? '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Payment Variance by Shift</h2>
@@ -254,38 +287,83 @@ export default function VarianceLosses() {
             No shift data for this period.
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Date</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Shift</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Expected</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Collected</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Variance (MWK)</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Variance %</th>
-                </tr>
-              </thead>
-              <tbody>
-                {varianceRows.map(r => (
-                  <tr key={r.shiftId} className="border-b border-gray-50 last:border-0">
-                    <td className="px-5 py-3 text-gray-700">{r.station}</td>
-                    <td className="px-5 py-3 text-gray-700">{new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
-                    <td className="px-5 py-3 capitalize text-gray-500">{r.shiftType}</td>
-                    <td className="px-5 py-3 text-right tabular-nums text-gray-700">{Math.round(r.expected).toLocaleString()}</td>
-                    <td className="px-5 py-3 text-right tabular-nums text-gray-700">{Math.round(r.actual).toLocaleString()}</td>
-                    <td className={`px-5 py-3 text-right tabular-nums font-medium ${r.varianceMWK > 0 ? 'text-red-600' : 'text-green-700'}`}>
-                      {r.varianceMWK > 0 ? '+' : ''}{Math.round(r.varianceMWK).toLocaleString()}
-                    </td>
-                    <td className={`px-5 py-3 text-right tabular-nums font-medium ${r.variancePct > 2 ? 'text-red-600' : r.variancePct < -0.5 ? 'text-amber-600' : 'text-green-700'}`}>
+          <>
+            {/* Mobile: variance shift cards */}
+            <div className="md:hidden space-y-3">
+              {varianceRows.map(r => (
+                <div key={r.shiftId} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="flex items-center gap-2 flex-wrap mb-3">
+                    <span className="font-medium text-gray-800 text-sm">{r.station}</span>
+                    <span className="text-gray-500 text-xs">
+                      {new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                    <span className={`ml-auto text-xs px-2 py-0.5 rounded-full font-medium capitalize ${
+                      r.shiftType === 'day' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {r.shiftType}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Expected</p>
+                      <p className="tabular-nums text-gray-700">{Math.round(r.expected).toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Collected</p>
+                      <p className="tabular-nums text-gray-700">{Math.round(r.actual).toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-0.5">Variance (MWK)</p>
+                      <p className={`tabular-nums font-medium text-sm ${r.varianceMWK > 0 ? 'text-red-600' : 'text-green-700'}`}>
+                        {r.varianceMWK > 0 ? '+' : ''}{Math.round(r.varianceMWK).toLocaleString()}
+                      </p>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      r.variancePct > 2 ? 'bg-red-100 text-red-700' : r.variancePct < -0.5 ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                    }`}>
                       {r.variancePct > 0 ? '+' : ''}{r.variancePct.toFixed(1)}%
-                    </td>
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: variance table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Date</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Shift</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Expected</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Collected</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Variance (MWK)</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Variance %</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {varianceRows.map(r => (
+                    <tr key={r.shiftId} className="border-b border-gray-50 last:border-0">
+                      <td className="px-5 py-3 text-gray-700">{r.station}</td>
+                      <td className="px-5 py-3 text-gray-700">{new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                      <td className="px-5 py-3 capitalize text-gray-500">{r.shiftType}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-gray-700">{Math.round(r.expected).toLocaleString()}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-gray-700">{Math.round(r.actual).toLocaleString()}</td>
+                      <td className={`px-5 py-3 text-right tabular-nums font-medium ${r.varianceMWK > 0 ? 'text-red-600' : 'text-green-700'}`}>
+                        {r.varianceMWK > 0 ? '+' : ''}{Math.round(r.varianceMWK).toLocaleString()}
+                      </td>
+                      <td className={`px-5 py-3 text-right tabular-nums font-medium ${r.variancePct > 2 ? 'text-red-600' : r.variancePct < -0.5 ? 'text-amber-600' : 'text-green-700'}`}>
+                        {r.variancePct > 0 ? '+' : ''}{r.variancePct.toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

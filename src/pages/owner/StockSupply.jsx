@@ -131,30 +131,56 @@ export default function StockSupply() {
             No recent deliveries.
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Fuel</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Litres</th>
-                  <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Date & Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deliveries.map((d, i) => (
-                  <tr key={i} className="border-b border-gray-50 last:border-0">
-                    <td className="px-5 py-3 text-gray-700">{d.stations?.name ?? '—'}</td>
-                    <td className="px-5 py-3 text-gray-500 uppercase">{d.fuel_type}</td>
-                    <td className="px-5 py-3 text-right tabular-nums text-gray-700">{(d.litres ?? 0).toLocaleString()}</td>
-                    <td className="px-5 py-3 text-right text-gray-500">
-                      {new Date(d.delivery_datetime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </td>
+          <>
+            {/* Mobile: delivery cards */}
+            <div className="md:hidden space-y-3">
+              {deliveries.map((d, i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-800">{d.stations?.name ?? '—'}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium uppercase ${
+                      (d.fuel_type ?? '').toUpperCase() === 'PMA' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                    }`}>
+                      {d.fuel_type}
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums mb-1">
+                    {(d.litres ?? 0).toLocaleString()}
+                    <span className="text-sm font-normal text-gray-400 ml-1">L</span>
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {new Date(d.delivery_datetime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: deliveries table */}
+            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
+                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Fuel</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Litres</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Date & Time</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {deliveries.map((d, i) => (
+                    <tr key={i} className="border-b border-gray-50 last:border-0">
+                      <td className="px-5 py-3 text-gray-700">{d.stations?.name ?? '—'}</td>
+                      <td className="px-5 py-3 text-gray-500 uppercase">{d.fuel_type}</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-gray-700">{(d.litres ?? 0).toLocaleString()}</td>
+                      <td className="px-5 py-3 text-right text-gray-500">
+                        {new Date(d.delivery_datetime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

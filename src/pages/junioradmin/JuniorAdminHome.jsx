@@ -56,20 +56,22 @@ export default function JuniorAdminHome() {
       <div className="relative">
         <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
           <span className="font-semibold text-gray-800">Petroda · Junior Admin</span>
-          <div className="hidden md:flex items-center gap-4 text-sm">
-            <span className="text-xs text-gray-300">Built by Streamline</span>
-            <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">{user.full_name}</Link>
-            <button onClick={signOut} className="text-gray-500 hover:text-gray-800">Sign out</button>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-4 text-sm">
+              <span className="text-xs text-gray-300">Built by Streamline</span>
+              <Link to="/app/profile" className="text-gray-500 hover:text-gray-800">{user.full_name}</Link>
+            </div>
+            <button onClick={signOut} className="text-sm text-gray-500 hover:text-gray-800">Sign out</button>
+            <button
+              className="md:hidden flex flex-col gap-1 p-1 ml-1"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label="Open menu"
+            >
+              <div className="w-5 h-0.5 bg-gray-700" />
+              <div className="w-5 h-0.5 bg-gray-700" />
+              <div className="w-5 h-0.5 bg-gray-700" />
+            </button>
           </div>
-          <button
-            className="md:hidden flex flex-col gap-1 p-1"
-            onClick={() => setMenuOpen(o => !o)}
-            aria-label="Open menu"
-          >
-            <div className="w-5 h-0.5 bg-gray-700" />
-            <div className="w-5 h-0.5 bg-gray-700" />
-            <div className="w-5 h-0.5 bg-gray-700" />
-          </button>
         </div>
 
         {menuOpen && (
