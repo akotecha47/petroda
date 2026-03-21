@@ -8,6 +8,7 @@ import StationComparison from './pages/owner/StationComparison'
 import SalesRevenue from './pages/owner/SalesRevenue'
 import StockSupply from './pages/owner/StockSupply'
 import VarianceLosses from './pages/owner/VarianceLosses'
+import ReportGenerator from './pages/ReportGenerator'
 import AdminHome from './pages/admin/AdminHome'
 import UserManagement from './pages/admin/UserManagement'
 import StationManagement from './pages/admin/StationManagement'
@@ -72,6 +73,14 @@ export default function App() {
           element={
             <ProtectedRoute roles={['owner', 'admin']}>
               <VarianceLosses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/app/owner/reports"
+          element={
+            <ProtectedRoute roles={['owner', 'admin']}>
+              <ReportGenerator />
             </ProtectedRoute>
           }
         />

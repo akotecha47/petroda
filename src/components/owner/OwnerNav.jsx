@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { to: '/app/owner/sales', label: 'Sales & Revenue' },
   { to: '/app/owner/stock', label: 'Stock & Supply' },
   { to: '/app/owner/variance', label: 'Variance & Losses' },
+  { to: '/app/owner/reports', label: 'Reports' },
 ]
 
 const TAB_ICONS = {

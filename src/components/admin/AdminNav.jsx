@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { label: 'Payment Methods', to: '/app/admin/payment-methods' },
   { label: 'Fuel Prices', to: '/app/admin/fuel-prices' },
   { label: 'Investigations', to: '/app/admin/investigations' },
+  { label: 'Reports', to: '/app/owner/reports' },
 ]
 
 export default function AdminNav() {
