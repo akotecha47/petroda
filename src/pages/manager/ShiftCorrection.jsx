@@ -103,7 +103,7 @@ export default function ShiftCorrection() {
           <div className="grid grid-cols-2 gap-4">
             <ReadOnlyField label="Shift" value={original.shift_type} />
             <ReadOnlyField label="Attendant" value={original.attendant_name} />
-            <ReadOnlyField label="PMA Litres" value={original.pma_litres_sold} />
+            <ReadOnlyField label="PMS Litres" value={original.pma_litres_sold} />
             <ReadOnlyField label="AGO Litres" value={original.ago_litres_sold} />
             <ReadOnlyField label="Cash Collected" value={original.cash_collected != null ? Number(original.cash_collected).toLocaleString() : null} />
             <ReadOnlyField label="Card Collected" value={original.card_collected != null ? Number(original.card_collected).toLocaleString() : null} />
@@ -116,7 +116,7 @@ export default function ShiftCorrection() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">PMA Litres</label>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-1">PMS Litres</label>
               <input
                 type="number" min="0" step="0.01" required
                 placeholder={original.pma_litres_sold ?? 0}

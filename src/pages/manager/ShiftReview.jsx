@@ -35,7 +35,7 @@ export default function ShiftReview() {
       priceData?.forEach(p => {
         if (!priceMap[p.fuel_type]) priceMap[p.fuel_type] = p.price_per_litre
       })
-      const pmaPrice = priceMap['PMA'] ?? 0
+      const pmaPrice = priceMap['PMS'] ?? 0
       const agoPrice = priceMap['AGO'] ?? 0
 
       // Shifts for selected date
@@ -151,7 +151,7 @@ export default function ShiftReview() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
                     <div>
-                      <p className="text-xs text-gray-400 mb-0.5">PMA</p>
+                      <p className="text-xs text-gray-400 mb-0.5">PMS</p>
                       <p className="tabular-nums text-gray-700">{(row.pma_litres_sold ?? 0).toLocaleString()} L</p>
                     </div>
                     <div>
@@ -203,7 +203,7 @@ export default function ShiftReview() {
                   <tr>
                     <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Shift</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Attendant</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">PMA (L)</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">PMS (L)</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">AGO (L)</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Cash</th>
                     <th className="text-right px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Card</th>

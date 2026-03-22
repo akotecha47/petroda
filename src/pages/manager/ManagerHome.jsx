@@ -204,7 +204,7 @@ export default function ManagerHome() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <KpiCard label="PMA Litres" value={kpis.pma.toLocaleString()} unit="L" />
+            <KpiCard label="PMS Litres" value={kpis.pma.toLocaleString()} unit="L" />
             <KpiCard label="AGO Litres" value={kpis.ago.toLocaleString()} unit="L" />
             <KpiCard label="Cash" value={kpis.cash.toLocaleString()} unit="MWK" />
             <KpiCard label="Card" value={kpis.card.toLocaleString()} unit="MWK" />

@@ -149,7 +149,7 @@ export default function OwnerHome() {
         const date = sparkShiftMap[e.shift_id]?.shift_date
         if (!date) return
         if (!sparkByDate[date]) sparkByDate[date] = { revenue: 0, cash: 0, card: 0 }
-        sparkByDate[date].revenue += (e.pma_litres_sold ?? 0) * priceAt(allPrices, 'PMA', date)
+        sparkByDate[date].revenue += (e.pma_litres_sold ?? 0) * priceAt(allPrices, 'PMS', date)
                                    + (e.ago_litres_sold ?? 0) * priceAt(allPrices, 'AGO', date)
         sparkByDate[date].cash += e.cash_collected ?? 0
         sparkByDate[date].card += e.card_collected ?? 0
@@ -159,19 +159,19 @@ export default function OwnerHome() {
       const shiftMap = {}
       allShifts?.forEach(s => { shiftMap[s.id] = s })
 
-      let totalPMA = 0, totalAGO = 0, totalRevenue = 0, totalCash = 0, totalCard = 0
+      let totalPMS = 0, totalAGO = 0, totalRevenue = 0, totalCash = 0, totalCard = 0
       entries.forEach(e => {
         const shift = shiftMap[e.shift_id]
         const date = shift?.shift_date ?? ''
-        totalPMA += e.pma_litres_sold ?? 0
+        totalPMS += e.pma_litres_sold ?? 0
         totalAGO += e.ago_litres_sold ?? 0
-        totalRevenue += (e.pma_litres_sold ?? 0) * priceAt(allPrices, 'PMA', date)
+        totalRevenue += (e.pma_litres_sold ?? 0) * priceAt(allPrices, 'PMS', date)
                       + (e.ago_litres_sold ?? 0) * priceAt(allPrices, 'AGO', date)
         totalCash += e.cash_collected ?? 0
         totalCard += e.card_collected ?? 0
       })
 
-      setKpis({ pma: totalPMA, ago: totalAGO, revenue: totalRevenue, cash: totalCash, card: totalCard, openFlags: openFlagCount ?? 0 })
+      setKpis({ pma: totalPMS, ago: totalAGO, revenue: totalRevenue, cash: totalCash, card: totalCard, openFlags: openFlagCount ?? 0 })
       setCriticalAlerts(criticalFlags ?? [])
 
       const todayShifts = (allShifts ?? []).filter(s => s.shift_date === today)
@@ -182,7 +182,7 @@ export default function OwnerHome() {
       allTanks?.forEach(t => {
         if (!capacityMap[t.station_id]) capacityMap[t.station_id] = { pma: 0, ago: 0 }
         const ft = (t.fuel_type ?? '').toUpperCase()
-        if (ft === 'PMA') capacityMap[t.station_id].pma += t.capacity_litres ?? 0
+        if (ft === 'PMS') capacityMap[t.station_id].pma += t.capacity_litres ?? 0
         else if (ft === 'AGO') capacityMap[t.station_id].ago += t.capacity_litres ?? 0
       })
 
@@ -272,12 +272,12 @@ export default function OwnerHome() {
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mb-3">
-                  <div>PMA: <span className="font-medium text-gray-700">{card.pma.toLocaleString()} L</span></div>
+                  <div>PMS: <span className="font-medium text-gray-700">{card.pma.toLocaleString()} L</span></div>
                   <div>AGO: <span className="font-medium text-gray-700">{card.ago.toLocaleString()} L</span></div>
                 </div>
                 <div className="space-y-1.5 mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400 w-8">PMA</span>
+                    <span className="text-xs text-gray-400 w-8">PMS</span>
                     <StockBar pct={card.pmaPct} />
                   </div>
                   <div className="flex items-center gap-2">
@@ -319,7 +319,7 @@ export default function OwnerHome() {
           </div>
         ) : kpis && (
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-            <KpiCard label="PMA Sold" value={kpis.pma.toLocaleString()} unit="L" accentColor="#60a5fa" />
+            <KpiCard label="PMS Sold" value={kpis.pma.toLocaleString()} unit="L" accentColor="#60a5fa" />
             <KpiCard label="AGO Sold" value={kpis.ago.toLocaleString()} unit="L" accentColor="#60a5fa" />
             <KpiCard label="Revenue" value={fmtMWK(kpis.revenue)} unit="MWK" accentColor="#4ade80" sparklineData={sparkData.map(d => ({ v: d.revenue }))} sparklineColor="#4ade80" />
             <KpiCard label="Cash" value={fmtMWK(kpis.cash)} unit="MWK" accentColor="#4ade80" sparklineData={sparkData.map(d => ({ v: d.cash }))} sparklineColor="#4ade80" />

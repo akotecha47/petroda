@@ -36,7 +36,7 @@ export async function generateShiftFlags(shiftId, stationId) {
     supabase
       .from('fuel_prices')
       .select('price_per_litre')
-      .eq('fuel_type', 'PMA')
+      .eq('fuel_type', 'PMS')
       .lte('effective_from', shift.shift_date)
       .order('effective_from', { ascending: false })
       .limit(1)
@@ -91,7 +91,7 @@ export async function generateShiftFlags(shiftId, stationId) {
       .eq('dip_entry_id', dipEntry.id)
 
     const actualPma = (currentReadings ?? []).reduce((s, r) =>
-      r.tanks?.fuel_type?.toUpperCase() === 'PMA' ? s + (r.calculated_litres ?? 0) : s, 0)
+      r.tanks?.fuel_type?.toUpperCase() === 'PMS' ? s + (r.calculated_litres ?? 0) : s, 0)
     const actualAgo = (currentReadings ?? []).reduce((s, r) =>
       r.tanks?.fuel_type?.toUpperCase() === 'AGO' ? s + (r.calculated_litres ?? 0) : s, 0)
 
@@ -119,7 +119,7 @@ export async function generateShiftFlags(shiftId, stationId) {
       ])
 
       const prevPma = (prevReadings ?? []).reduce((s, r) =>
-        r.tanks?.fuel_type?.toUpperCase() === 'PMA' ? s + (r.calculated_litres ?? 0) : s, 0)
+        r.tanks?.fuel_type?.toUpperCase() === 'PMS' ? s + (r.calculated_litres ?? 0) : s, 0)
       const prevAgo = (prevReadings ?? []).reduce((s, r) =>
         r.tanks?.fuel_type?.toUpperCase() === 'AGO' ? s + (r.calculated_litres ?? 0) : s, 0)
 
@@ -127,7 +127,7 @@ export async function generateShiftFlags(shiftId, stationId) {
       let deliveryAgo = 0
       deliveriesBetween?.forEach(d => {
         const ft = d.fuel_type?.toUpperCase()
-        if (ft === 'PMA') deliveryPma += d.litres ?? 0
+        if (ft === 'PMS') deliveryPma += d.litres ?? 0
         else if (ft === 'AGO') deliveryAgo += d.litres ?? 0
       })
 

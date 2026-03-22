@@ -78,7 +78,7 @@ export default function SalesRevenue() {
         .filter(s => entriesByShift[s.id]?.length > 0)
         .map(s => {
           const shiftEntries = entriesByShift[s.id]
-          const pmaP = priceAt(allPrices, 'PMA', s.shift_date)
+          const pmaP = priceAt(allPrices, 'PMS', s.shift_date)
           const agoP = priceAt(allPrices, 'AGO', s.shift_date)
           const pma = shiftEntries.reduce((sum, e) => sum + (e.pma_litres_sold ?? 0), 0)
           const ago = shiftEntries.reduce((sum, e) => sum + (e.ago_litres_sold ?? 0), 0)
@@ -104,7 +104,7 @@ export default function SalesRevenue() {
       setSummary({ total: totalRevenue, pma: pmaRevenue, ago: agoRevenue })
 
       const seedDate = getDemoAdjustedRange('day').from
-      const pmaEntry = (allPrices ?? []).find(p => p.fuel_type === 'PMA' && p.effective_from <= seedDate)
+      const pmaEntry = (allPrices ?? []).find(p => p.fuel_type === 'PMS' && p.effective_from <= seedDate)
       const agoEntry = (allPrices ?? []).find(p => p.fuel_type === 'AGO' && p.effective_from <= seedDate)
       setCurrentPrices({
         pma: pmaEntry?.price_per_litre ?? 0,
@@ -147,7 +147,7 @@ export default function SalesRevenue() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {[
               { label: 'Total Revenue', value: summary.total },
-              { label: 'PMA Revenue', value: summary.pma },
+              { label: 'PMS Revenue', value: summary.pma },
               { label: 'AGO Revenue', value: summary.ago },
             ].map(c => (
               <div key={c.label} className="bg-white rounded-xl border border-gray-200 p-5">
@@ -165,7 +165,7 @@ export default function SalesRevenue() {
           <div className="bg-white rounded-xl border border-gray-200 px-5 py-3 flex flex-wrap gap-6 text-sm mb-6">
             <span className="text-gray-400">Current prices:</span>
             <span>
-              PMA <strong>{currentPrices.pma.toLocaleString()} MWK/L</strong>
+              PMS <strong>{currentPrices.pma.toLocaleString()} MWK/L</strong>
               {currentPrices.pmaDate && <span className="text-gray-400 ml-1">(since {new Date(currentPrices.pmaDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})</span>}
             </span>
             <span>
@@ -204,7 +204,7 @@ export default function SalesRevenue() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     <div>
-                      <p className="text-xs text-gray-400 mb-0.5">PMA</p>
+                      <p className="text-xs text-gray-400 mb-0.5">PMS</p>
                       <p className="font-medium text-gray-700 tabular-nums text-sm">{r.pma.toLocaleString()} L</p>
                     </div>
                     <div>
@@ -237,7 +237,7 @@ export default function SalesRevenue() {
                     <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Date</th>
                     <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Station</th>
                     <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Shift</th>
-                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">PMA (L)</th>
+                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">PMS (L)</th>
                     <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">AGO (L)</th>
                     <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Expected</th>
                     <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Collected</th>
