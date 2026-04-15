@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import AdminNav from '../../components/admin/AdminNav'
 
-const BLANK_FORM = { fuel_type: 'PMS', price_per_litre: '', effective_from: new Date().toISOString().slice(0, 16) }
+const BLANK_FORM = { fuel_type: 'PMA', price_per_litre: '', effective_from: new Date().toISOString().slice(0, 16) }
 
 export default function FuelPrices() {
   const { user } = useAuth()
@@ -52,7 +52,7 @@ export default function FuelPrices() {
   }
 
   const today = new Date().toISOString().slice(0, 10)
-  const currentPMS = prices.find(p => p.fuel_type === 'PMS' && p.effective_from.slice(0, 10) <= today)
+  const currentPMA = prices.find(p => p.fuel_type === 'PMA' && p.effective_from.slice(0, 10) <= today)
   const currentAGO = prices.find(p => p.fuel_type === 'AGO' && p.effective_from.slice(0, 10) <= today)
 
   if (!user) return null
@@ -84,7 +84,7 @@ export default function FuelPrices() {
             [...Array(2)].map((_, i) => <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 h-24 animate-pulse" />)
           ) : (
             <>
-              {[{ label: 'PMS', entry: currentPMS }, { label: 'AGO', entry: currentAGO }].map(({ label, entry }) => (
+              {[{ label: 'PMA', entry: currentPMA }, { label: 'AGO', entry: currentAGO }].map(({ label, entry }) => (
                 <div key={label} className="bg-white rounded-xl border border-gray-200 p-5">
                   <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Current {label} Price</p>
                   <p className="text-2xl font-bold text-gray-900 leading-none">
@@ -111,7 +111,7 @@ export default function FuelPrices() {
                   onChange={e => setAddForm(f => ({ ...f, fuel_type: e.target.value }))}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white"
                 >
-                  <option value="PMS">PMS</option>
+                  <option value="PMA">PMA</option>
                   <option value="AGO">AGO</option>
                 </select>
               </div>
@@ -164,7 +164,7 @@ export default function FuelPrices() {
                 <div key={p.id} className="bg-white rounded-xl border border-gray-200 p-4">
                   <div className="flex items-center justify-between mb-1">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium uppercase ${
-                      p.fuel_type === 'PMS' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                      p.fuel_type === 'PMA' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
                     }`}>{p.fuel_type}</span>
                     <span className="text-xl font-bold tabular-nums text-gray-900">
                       {p.price_per_litre.toLocaleString()}

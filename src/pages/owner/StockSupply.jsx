@@ -42,7 +42,7 @@ export default function StockSupply() {
       tanks?.forEach(t => {
         if (!capacityMap[t.station_id]) capacityMap[t.station_id] = { pma: 0, ago: 0 }
         const ft = (t.fuel_type ?? '').toUpperCase()
-        if (ft === 'PMS') capacityMap[t.station_id].pma += t.capacity_litres ?? 0
+        if (ft === 'PMA') capacityMap[t.station_id].pma += t.capacity_litres ?? 0
         else if (ft === 'AGO') capacityMap[t.station_id].ago += t.capacity_litres ?? 0
       })
 
@@ -99,7 +99,7 @@ export default function StockSupply() {
                 <div className="space-y-2 mb-3">
                   <div>
                     <div className="flex justify-between text-xs text-gray-500 mb-1">
-                      <span>PMS</span>
+                      <span>PMA</span>
                       <span>{s.pmaStock.toLocaleString()} / {s.pmaCap.toLocaleString()} L</span>
                     </div>
                     <StockBar pct={s.pmaPct} />
@@ -139,7 +139,7 @@ export default function StockSupply() {
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-gray-800">{d.stations?.name ?? '—'}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium uppercase ${
-                      (d.fuel_type ?? '').toUpperCase() === 'PMS' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
+                      (d.fuel_type ?? '').toUpperCase() === 'PMA' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'
                     }`}>
                       {d.fuel_type}
                     </span>

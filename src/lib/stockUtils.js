@@ -49,7 +49,7 @@ export async function currentStock(stationId) {
 
     readings?.forEach(r => {
       const ft = r.tanks?.fuel_type?.toUpperCase()
-      if (ft === 'PMS') pmaStock += r.calculated_litres ?? 0
+      if (ft === 'PMA') pmaStock += r.calculated_litres ?? 0
       else if (ft === 'AGO') agoStock += r.calculated_litres ?? 0
     })
   }
@@ -66,7 +66,7 @@ export async function currentStock(stationId) {
   const { data: deliveries } = await deliveryQuery
   deliveries?.forEach(d => {
     const ft = d.fuel_type?.toUpperCase()
-    if (ft === 'PMS') pmaStock += d.litres ?? 0
+    if (ft === 'PMA') pmaStock += d.litres ?? 0
     else if (ft === 'AGO') agoStock += d.litres ?? 0
   })
 

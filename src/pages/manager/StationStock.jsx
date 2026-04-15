@@ -132,7 +132,7 @@ export default function StationStock() {
           <>
             <div className="grid grid-cols-2 gap-4 mb-8">
               {[
-                { label: 'PMS Stock', litres: stock.pma, pct: pmaPct },
+                { label: 'PMA Stock', litres: stock.pma, pct: pmaPct },
                 { label: 'AGO Stock', litres: stock.ago, pct: agoPct },
               ].map(({ label, litres, pct }) => (
                 <div key={label} className="bg-white rounded-xl border border-gray-200 p-6">

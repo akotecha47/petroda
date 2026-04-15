@@ -106,7 +106,7 @@ async function fetchReportData(from, to, stationId) {
     if (!revByStation[s.station_id])
       revByStation[s.station_id] = { name: s.stations?.name ?? '—', pmaRev: 0, agoRev: 0 }
     const es = entriesByShift[s.id] ?? []
-    const pmaP = priceAt(prices, 'PMS', s.shift_date)
+    const pmaP = priceAt(prices, 'PMA', s.shift_date)
     const agoP = priceAt(prices, 'AGO', s.shift_date)
     es.forEach(e => {
       revByStation[s.station_id].pmaRev += (e.pma_litres_sold ?? 0) * pmaP
@@ -121,7 +121,7 @@ async function fetchReportData(from, to, stationId) {
     if (!cashByStation[s.station_id])
       cashByStation[s.station_id] = { name: s.stations?.name ?? '—', expected: 0, actual: 0 }
     const es = entriesByShift[s.id] ?? []
-    const pmaP = priceAt(prices, 'PMS', s.shift_date)
+    const pmaP = priceAt(prices, 'PMA', s.shift_date)
     const agoP = priceAt(prices, 'AGO', s.shift_date)
     es.forEach(e => {
       cashByStation[s.station_id].expected += (e.pma_litres_sold ?? 0) * pmaP + (e.ago_litres_sold ?? 0) * agoP
@@ -141,7 +141,7 @@ async function fetchReportData(from, to, stationId) {
   ;(deliveries ?? []).forEach(d => {
     if (!delivByStation[d.station_id]) delivByStation[d.station_id] = { pma: 0, ago: 0 }
     const ft = (d.fuel_type ?? '').toUpperCase()
-    if (ft === 'PMS') delivByStation[d.station_id].pma += d.litres ?? 0
+    if (ft === 'PMA') delivByStation[d.station_id].pma += d.litres ?? 0
     else if (ft === 'AGO') delivByStation[d.station_id].ago += d.litres ?? 0
   })
 
@@ -160,7 +160,7 @@ async function fetchReportData(from, to, stationId) {
     const deliv   = delivByStation[s.id]   ?? { pma: 0, ago: 0 }
     const sales   = salesByStation[s.id]   ?? { pma: 0, ago: 0 }
     return [
-      { station: s.name, fuelType: 'PMS', opening: closing.pma + sales.pma - deliv.pma, deliveries: deliv.pma, sales: sales.pma, closing: closing.pma },
+      { station: s.name, fuelType: 'PMA', opening: closing.pma + sales.pma - deliv.pma, deliveries: deliv.pma, sales: sales.pma, closing: closing.pma },
       { station: s.name, fuelType: 'AGO', opening: closing.ago + sales.ago - deliv.ago, deliveries: deliv.ago, sales: sales.ago, closing: closing.ago },
     ]
   })
@@ -319,7 +319,7 @@ async function generatePDF(data, from, to, stationId, stations) {
     emptyNote('No shift data for this period.')
   } else {
     drawTable(
-      [{ label: 'Shift Date', w: 28 }, { label: 'Station', w: 46 }, { label: 'Shift Type', w: 24 }, { label: 'PMS Sold (L)', w: 26, right: true }, { label: 'AGO Sold (L)', w: 26, right: true }, { label: 'Attendant', w: 32 }],
+      [{ label: 'Shift Date', w: 28 }, { label: 'Station', w: 46 }, { label: 'Shift Type', w: 24 }, { label: 'PMA Sold (L)', w: 26, right: true }, { label: 'AGO Sold (L)', w: 26, right: true }, { label: 'Attendant', w: 32 }],
       fuelSales.map(r => [fmtDate(r.date), r.station, r.shiftType, fmtL(r.pma), fmtL(r.ago), r.attendant])
     )
   }
@@ -330,7 +330,7 @@ async function generatePDF(data, from, to, stationId, stations) {
     emptyNote('No revenue data for this period.')
   } else {
     drawTable(
-      [{ label: 'Station', w: 60 }, { label: 'PMS Revenue (MWK)', w: 42, right: true }, { label: 'AGO Revenue (MWK)', w: 42, right: true }, { label: 'Total Revenue (MWK)', w: 38, right: true }],
+      [{ label: 'Station', w: 60 }, { label: 'PMA Revenue (MWK)', w: 42, right: true }, { label: 'AGO Revenue (MWK)', w: 42, right: true }, { label: 'Total Revenue (MWK)', w: 38, right: true }],
       revenue.map(r => [r.name, fmtMWK(r.pmaRev), fmtMWK(r.agoRev), fmtMWK(r.total)]),
       ['Total', fmtMWK(revTotals.pmaRev), fmtMWK(revTotals.agoRev), fmtMWK(revTotals.total)]
     )
@@ -481,7 +481,7 @@ function ReportPreview({ data, from, to, stationId, stations }) {
       <SectionHeader title="1. Fuel Sales by Shift" />
       {fuelSales.length === 0 ? empty('No shift data for this period.') : (
         <PreviewTable
-          headers={[{ label: 'Shift Date' }, { label: 'Station' }, { label: 'Shift Type' }, { label: 'PMS Sold', right: true }, { label: 'AGO Sold', right: true }, { label: 'Attendant' }]}
+          headers={[{ label: 'Shift Date' }, { label: 'Station' }, { label: 'Shift Type' }, { label: 'PMA Sold', right: true }, { label: 'AGO Sold', right: true }, { label: 'Attendant' }]}
           rows={fuelSales.map(r => [fmtDate(r.date), r.station, r.shiftType, fmtL(r.pma), fmtL(r.ago), r.attendant])}
         />
       )}
@@ -490,7 +490,7 @@ function ReportPreview({ data, from, to, stationId, stations }) {
       <SectionHeader title="2. Revenue Summary" />
       {revenue.length === 0 ? empty('No revenue data for this period.') : (
         <PreviewTable
-          headers={[{ label: 'Station' }, { label: 'PMS Revenue', right: true }, { label: 'AGO Revenue', right: true }, { label: 'Total Revenue', right: true }]}
+          headers={[{ label: 'Station' }, { label: 'PMA Revenue', right: true }, { label: 'AGO Revenue', right: true }, { label: 'Total Revenue', right: true }]}
           rows={revenue.map(r => [r.name, fmtMWK(r.pmaRev), fmtMWK(r.agoRev), fmtMWK(r.total)])}
           footer={['Total', fmtMWK(revTotals.pmaRev), fmtMWK(revTotals.agoRev), fmtMWK(revTotals.total)]}
         />

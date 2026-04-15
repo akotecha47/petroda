@@ -64,7 +64,7 @@ export default function StationMonitoring() {
       ;(tanksRaw ?? []).forEach(t => {
         if (!capacityMap[t.station_id]) capacityMap[t.station_id] = { pma: 0, ago: 0 }
         const ft = (t.fuel_type ?? '').toUpperCase()
-        if (ft === 'PMS') capacityMap[t.station_id].pma += t.capacity_litres ?? 0
+        if (ft === 'PMA') capacityMap[t.station_id].pma += t.capacity_litres ?? 0
         else if (ft === 'AGO') capacityMap[t.station_id].ago += t.capacity_litres ?? 0
       })
 
@@ -177,7 +177,7 @@ export default function StationMonitoring() {
 
                   <div className="grid grid-cols-2 gap-6 mb-5">
                     {[
-                      { label: 'PMS Stock', pct: d.pmaPct },
+                      { label: 'PMA Stock', pct: d.pmaPct },
                       { label: 'AGO Stock', pct: d.agoPct },
                     ].map(({ label, pct }) => (
                       <div key={label}>

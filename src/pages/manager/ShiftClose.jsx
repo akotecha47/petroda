@@ -40,7 +40,7 @@ function ShiftPanel({ label, shift, shiftEntries, closing, onClose }) {
       {shiftEntries.length > 0 && (
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-400 mb-1">PMS Litres</p>
+            <p className="text-xs text-gray-400 mb-1">PMA Litres</p>
             <p className="text-sm font-semibold text-gray-800">{pma.toLocaleString()} L</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">

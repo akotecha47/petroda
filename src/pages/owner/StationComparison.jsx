@@ -5,7 +5,7 @@ import { getDemoAdjustedRange } from '../../lib/demoOffset'
 import OwnerNav from '../../components/owner/OwnerNav'
 
 const ROWS = [
-  { key: 'pma', label: 'PMS Sold', unit: 'L', best: 'max' },
+  { key: 'pma', label: 'PMA Sold', unit: 'L', best: 'max' },
   { key: 'ago', label: 'AGO Sold', unit: 'L', best: 'max' },
   { key: 'revenue', label: 'Revenue', unit: 'MWK', best: 'max' },
   { key: 'cash', label: 'Cash', unit: 'MWK', best: 'max' },
@@ -86,7 +86,7 @@ export default function StationComparison() {
       entries.forEach(e => {
         const shift = shiftMap[e.shift_id]
         if (!shift || !result[shift.station_id]) return
-        const pmaP = priceAt(allPrices, 'PMS', shift.shift_date)
+        const pmaP = priceAt(allPrices, 'PMA', shift.shift_date)
         const agoP = priceAt(allPrices, 'AGO', shift.shift_date)
         const r = result[shift.station_id]
         r.pma += e.pma_litres_sold ?? 0

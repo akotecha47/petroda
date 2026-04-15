@@ -234,7 +234,7 @@ export default function AttendantHome() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              {field('PMS Litres Sold', 'pma')}
+              {field('PMA Litres Sold', 'pma')}
               {field('AGO Litres Sold', 'ago')}
               {field('Cash Collected — MWK', 'cash', 'MWK')}
               {field('Bank Card Collected — MWK', 'card', 'MWK')}
@@ -278,7 +278,7 @@ export default function AttendantHome() {
                     <span className="text-xs text-gray-400">{formatTime(entry.submitted_at)}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-700">
-                    <span className="text-gray-400">PMS</span>
+                    <span className="text-gray-400">PMA</span>
                     <span>{entry.pma_litres_sold} L</span>
                     <span className="text-gray-400">AGO</span>
                     <span>{entry.ago_litres_sold} L</span>
