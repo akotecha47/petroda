@@ -8,6 +8,7 @@ import UserManagement from './pages/admin/UserManagement'
 import ReportGenerator from './pages/ReportGenerator'
 import InvestigationAudit from './pages/admin/InvestigationAudit'
 import ManagerHome from './pages/manager/ManagerHome'
+import DailySalesForm from './pages/manager/DailySalesForm'
 import DeliveryEntry from './pages/manager/DeliveryEntry'
 import DipEntry from './pages/manager/DipEntry'
 
@@ -108,7 +109,7 @@ export default function App() {
           path="/manager/daily-sales"
           element={
             <ProtectedRoute allowedRoles={['manager']}>
-              <div>Daily Sales Form — coming soon</div>
+              <DailySalesForm />
             </ProtectedRoute>
           }
         />

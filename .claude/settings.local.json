@@ -10,7 +10,11 @@
       "Bash(npx playwright *)",
       "Bash(npm init *)",
       "Bash(curl *)",
-      "Bash(python -m json.tool)"
+      "Bash(python -m json.tool)",
+      "PowerShell(cd C:\\\\Users\\\\akote\\\\Dev\\\\petroda; Start-Process -NoNewWindow -FilePath \"npm\" -ArgumentList \"run\",\"dev\" -RedirectStandardOutput \"$env:TEMP\\\\petroda_dev.log\" -RedirectStandardError \"$env:TEMP\\\\petroda_dev_err.log\")",
+      "Bash(npm run *)",
+      "Read(//tmp/**)",
+      "Bash('.animate-spin')"
     ]
   }
 }
