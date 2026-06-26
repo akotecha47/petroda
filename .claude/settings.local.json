@@ -7,7 +7,10 @@
       "Bash(node *)",
       "Skill(run)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5174/)",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(npm init *)",
+      "Bash(curl *)",
+      "Bash(python -m json.tool)"
     ]
   }
 }
