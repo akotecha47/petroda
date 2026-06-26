@@ -224,7 +224,7 @@ function LubricantSection({ skus, lubState, onLub, disabled }) {
                 <td className="px-2 py-1"><Calc value={total} /></td>
                 <td className="px-2 py-1"><Num value={l.cash_sales_qty} onChange={v => onLub(sku.id, 'cash_sales_qty', v, sku)} disabled={disabled} /></td>
                 <td className="px-2 py-1"><Num value={l.cr_sales_qty} onChange={v => onLub(sku.id, 'cr_sales_qty', v, sku)} disabled={disabled} /></td>
-                <td className="px-2 py-1"><Num value={l.unit_price !== undefined ? l.unit_price : sku.unit_price} onChange={v => onLub(sku.id, 'unit_price', v, sku)} disabled={disabled} /></td>
+                <td className="px-2 py-1"><Calc value={l.unit_price !== undefined ? l.unit_price : sku.unit_price} /></td>
                 <td className="px-2 py-1"><Calc value={cashAmt} /></td>
                 <td className="px-2 py-1"><Calc value={crAmt} /></td>
                 <td className="px-2 py-1"><Calc value={closing} /></td>
@@ -593,7 +593,7 @@ export default function DailySalesForm() {
         const l = lub[sku.id] || {}
         const hasData = n(l.opening_stock) > 0 || n(l.received) > 0 || n(l.cash_sales_qty) > 0 || n(l.cr_sales_qty) > 0
         if (!hasData && !l.id) continue
-        const up = n(l.unit_price !== undefined ? l.unit_price : sku.unit_price)
+        const up = n(sku.unit_price)
         const payload = {
           form_id: fId, sku_id: sku.id,
           opening_stock: n(l.opening_stock), received: n(l.received),
