@@ -15,12 +15,12 @@ DROP TABLE IF EXISTS payment_categories CASCADE;
 -- ─── STEP 3: Update roles ────────────────────────────────────
 -- If user_role is an enum type, add the new values:
 -- (Skip these two lines if role column is plain text)
-ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'master';
-ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'station_manager';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'owner';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'manager';
 
 -- Remap existing role values
-UPDATE users SET role = 'master'           WHERE role = 'owner';
-UPDATE users SET role = 'station_manager'  WHERE role = 'manager';
+UPDATE users SET role = 'owner'   WHERE role = 'master';
+UPDATE users SET role = 'manager' WHERE role = 'station_manager';
 -- admin stays as admin
 
 -- Remove out-of-scope users from the users table
@@ -67,11 +67,11 @@ SELECT id, 'AGO', 'Diesel Tank', 40000,
 ]'::jsonb, true
 FROM stations WHERE name = 'Mbayani';
 
--- Link admin and station_manager users to Mbayani station
+-- Link admin and manager users to Mbayani station
 UPDATE users
 SET station_id = (SELECT id FROM stations WHERE name = 'Mbayani')
-WHERE role IN ('admin', 'station_manager');
--- master user intentionally gets no station_id (head-office level)
+WHERE role IN ('admin', 'manager');
+-- owner user intentionally gets no station_id (head-office level)
 
 
 -- ─── STEP 5: Create new tables ───────────────────────────────
@@ -250,7 +250,7 @@ CREATE POLICY ds_insert ON daily_summary FOR INSERT WITH CHECK (true);
 CREATE POLICY ds_update ON daily_summary FOR UPDATE USING (true);
 GRANT ALL ON daily_summary TO authenticated;
 
--- Deposit slips (next-morning entry by station_manager)
+-- Deposit slips (next-morning entry by manager)
 CREATE TABLE IF NOT EXISTS deposit_slips (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   form_id        uuid NOT NULL UNIQUE REFERENCES daily_sales_forms(id) ON DELETE CASCADE,
@@ -267,7 +267,7 @@ CREATE POLICY deposit_insert ON deposit_slips FOR INSERT WITH CHECK (true);
 CREATE POLICY deposit_update ON deposit_slips FOR UPDATE USING (true);
 GRANT ALL ON deposit_slips TO authenticated;
 
--- Customers (admin manages, station_manager selects only)
+-- Customers (admin manages, manager selects only)
 CREATE TABLE IF NOT EXISTS customers (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name       text NOT NULL,
