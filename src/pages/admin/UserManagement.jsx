@@ -2,18 +2,17 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import AdminNav from '../../components/admin/AdminNav'
+import { ROLE_LABELS } from '../../lib/roles'
 
-const ROLES = ['owner', 'admin', 'junior_admin', 'manager', 'attendant']
+const ROLES = ['owner', 'admin', 'manager']
 const ROLE_BADGE = {
   owner: 'bg-purple-100 text-purple-700',
   admin: 'bg-blue-100 text-blue-700',
-  junior_admin: 'bg-teal-100 text-teal-700',
   manager: 'bg-amber-100 text-amber-700',
-  attendant: 'bg-gray-100 text-gray-600',
 }
-const STATION_REQUIRED = ['manager', 'attendant']
+const STATION_REQUIRED = ['manager']
 
-const BLANK_FORM = { full_name: '', username: '', role: 'attendant', station_id: '', is_active: true }
+const BLANK_FORM = { full_name: '', username: '', role: 'manager', station_id: '', is_active: true }
 
 export default function UserManagement() {
   const { user } = useAuth()
@@ -140,7 +139,7 @@ export default function UserManagement() {
                   onChange={e => setAddForm(f => ({ ...f, role: e.target.value }))}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white"
                 >
-                  {ROLES.map(r => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
+                  {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>)}
                 </select>
               </div>
               <div>
@@ -214,7 +213,7 @@ export default function UserManagement() {
                             onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
                             className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white w-full"
                           >
-                            {ROLES.map(r => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
+                            {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>)}
                           </select>
                         </div>
                         <div>
@@ -255,7 +254,7 @@ export default function UserManagement() {
                         <p className="text-xs text-gray-400 mt-0.5 truncate">{u.username}</p>
                         <p className="text-xs text-gray-500 mt-1">{u.stations?.name ?? '—'}</p>
                         <span className={`inline-block mt-1.5 text-xs px-2.5 py-1 rounded-full font-medium capitalize ${ROLE_BADGE[u.role] ?? 'bg-gray-100 text-gray-500'}`}>
-                          {u.role.replace('_', ' ')}
+                          {ROLE_LABELS[u.role] ?? u.role}
                         </span>
                       </div>
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -311,7 +310,7 @@ export default function UserManagement() {
                               onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
                               className="border border-gray-200 rounded px-2 py-1 text-sm bg-white"
                             >
-                              {ROLES.map(r => <option key={r} value={r}>{r.replace('_', ' ')}</option>)}
+                              {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r] ?? r}</option>)}
                             </select>
                           </td>
                           <td className="px-5 py-2">
@@ -348,7 +347,7 @@ export default function UserManagement() {
                           <td className="px-5 py-3 text-gray-500">{u.username}</td>
                           <td className="px-5 py-3">
                             <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${ROLE_BADGE[u.role] ?? 'bg-gray-100 text-gray-500'}`}>
-                              {u.role.replace('_', ' ')}
+                              {ROLE_LABELS[u.role] ?? u.role}
                             </span>
                           </td>
                           <td className="px-5 py-3 text-gray-500">{u.stations?.name ?? '—'}</td>

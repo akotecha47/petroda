@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { ROLE_HOME } from '../lib/roles'
+const ROLE_HOME = { owner: '/owner', admin: '/admin', manager: '/manager' }
 
 export default function Profile() {
   const { user } = useAuth()

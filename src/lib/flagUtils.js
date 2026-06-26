@@ -23,58 +23,12 @@ export async function generateShiftFlags(shiftId, stationId) {
 
   if (!shift) return []
 
-  const [
-    { data: entries },
-    pmaPriceResult,
-    agoPriceResult,
-    thresholds,
-  ] = await Promise.all([
-    supabase
-      .from('attendant_entries')
-      .select('pma_litres_sold, ago_litres_sold, cash_collected, card_collected')
-      .eq('shift_id', shiftId),
-    supabase
-      .from('fuel_prices')
-      .select('price_per_litre')
-      .eq('fuel_type', 'PMA')
-      .lte('effective_from', shift.shift_date)
-      .order('effective_from', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from('fuel_prices')
-      .select('price_per_litre')
-      .eq('fuel_type', 'AGO')
-      .lte('effective_from', shift.shift_date)
-      .order('effective_from', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    getThresholds(),
-  ])
+  // attendant_entries removed — flag logic to be rebuilt
+  // against daily_sales_forms in a later step
 
-  if (!entries?.length) return []
-
-  const totalPma = entries.reduce((s, e) => s + (e.pma_litres_sold ?? 0), 0)
-  const totalAgo = entries.reduce((s, e) => s + (e.ago_litres_sold ?? 0), 0)
-  const totalCash = entries.reduce((s, e) => s + (e.cash_collected ?? 0), 0)
-  const totalCard = entries.reduce((s, e) => s + (e.card_collected ?? 0), 0)
-  const totalCollected = totalCash + totalCard
-
-  const pmaPriceVal = pmaPriceResult.data?.price_per_litre ?? 0
-  const agoPriceVal = agoPriceResult.data?.price_per_litre ?? 0
-  const expectedRevenue = totalPma * pmaPriceVal + totalAgo * agoPriceVal
-  const paymentVariance = expectedRevenue - totalCollected
-  const paymentVariancePct = expectedRevenue > 0 ? Math.abs(paymentVariance) / expectedRevenue : 0
-
+  const thresholds = await getThresholds()
   const flagsToCreate = []
 
-  if (paymentVariancePct >= thresholds.payment_variance_warning) {
-    const severity = paymentVariancePct >= thresholds.payment_variance_critical ? 'critical' : 'warning'
-    const flagType = paymentVariance < 0 ? 'positive_variance' : 'payment_variance'
-    flagsToCreate.push({ flag_type: flagType, severity })
-  }
-
-  // Stock variance — only if a dip exists for this shift and a prior dip exists to establish opening stock
   const { data: dipEntry } = await supabase
     .from('dip_entries')
     .select('id, recorded_at')
@@ -130,6 +84,10 @@ export async function generateShiftFlags(shiftId, stationId) {
         if (ft === 'PMA') deliveryPma += d.litres ?? 0
         else if (ft === 'AGO') deliveryAgo += d.litres ?? 0
       })
+
+      // totalPma / totalAgo will come from daily_sales_forms once rebuilt
+      const totalPma = 0
+      const totalAgo = 0
 
       const expectedPma = prevPma + deliveryPma - totalPma
       const expectedAgo = prevAgo + deliveryAgo - totalAgo

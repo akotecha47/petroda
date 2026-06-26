@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { fetchProfile } from '../context/AuthContext'
-import { ROLE_HOME } from '../lib/roles'
+const ROLE_HOME = { owner: '/owner', admin: '/admin', manager: '/manager' }
 
 export default function Login() {
   const { session, user, loading, setSession, setUser } = useAuth()

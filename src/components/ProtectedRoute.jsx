@@ -1,8 +1,13 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { ROLE_HOME } from '../lib/roles'
 
-export default function ProtectedRoute({ roles, children }) {
+const ROLE_HOME = {
+  owner: '/owner',
+  admin: '/admin',
+  manager: '/manager',
+}
+
+export default function ProtectedRoute({ allowedRoles, children }) {
   const { session, user, loading } = useAuth()
 
   if (loading) {
@@ -17,8 +22,8 @@ export default function ProtectedRoute({ roles, children }) {
     return <Navigate to="/login" replace />
   }
 
-  if (user && !roles.includes(user.role)) {
-    return <Navigate to={ROLE_HOME[user.role]} replace />
+  if (user && !allowedRoles.includes(user.role)) {
+    return <Navigate to={ROLE_HOME[user.role] ?? '/login'} replace />
   }
 
   return children

@@ -1,266 +1,144 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
-import Profile from './pages/Profile'
-import OwnerHome from './pages/owner/OwnerHome'
-import StationComparison from './pages/owner/StationComparison'
-import SalesRevenue from './pages/owner/SalesRevenue'
-import StockSupply from './pages/owner/StockSupply'
-import VarianceLosses from './pages/owner/VarianceLosses'
-import ReportGenerator from './pages/ReportGenerator'
-import AdminHome from './pages/admin/AdminHome'
-import UserManagement from './pages/admin/UserManagement'
-import StationManagement from './pages/admin/StationManagement'
-import ThresholdsRules from './pages/admin/ThresholdsRules'
-import PaymentMethods from './pages/admin/PaymentMethods'
 import FuelPrices from './pages/admin/FuelPrices'
+import ThresholdsRules from './pages/admin/ThresholdsRules'
+import UserManagement from './pages/admin/UserManagement'
+import ReportGenerator from './pages/ReportGenerator'
 import InvestigationAudit from './pages/admin/InvestigationAudit'
-import JuniorAdminHome from './pages/junioradmin/JuniorAdminHome'
 import ManagerHome from './pages/manager/ManagerHome'
-import ShiftReview from './pages/manager/ShiftReview'
-import ShiftCorrection from './pages/manager/ShiftCorrection'
-import ShiftClose from './pages/manager/ShiftClose'
-import AttendantHome from './pages/attendant/AttendantHome'
-import StationStock from './pages/manager/StationStock'
-import DipEntry from './pages/manager/DipEntry'
 import DeliveryEntry from './pages/manager/DeliveryEntry'
-import StationCash from './pages/manager/StationCash'
-import CashMovementEntry from './pages/manager/CashMovementEntry'
-import FlagsInvestigations from './pages/manager/FlagsInvestigations'
-import DipVerification from './pages/junioradmin/DipVerification'
-import StationMonitoring from './pages/junioradmin/StationMonitoring'
+import DipEntry from './pages/manager/DipEntry'
+
+function RootRedirect() {
+  const { session, user, loading } = useAuth()
+  if (loading) return null
+  if (!session) return <Navigate to="/login" replace />
+  if (user?.role === 'owner') return <Navigate to="/owner" replace />
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />
+  if (user?.role === 'manager') return <Navigate to="/manager" replace />
+  return <Navigate to="/login" replace />
+}
 
 export default function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+
+        {/* Owner routes */}
         <Route
-          path="/app/owner"
+          path="/owner"
           element={
-            <ProtectedRoute roles={['owner', 'admin']}>
-              <OwnerHome />
+            <ProtectedRoute allowedRoles={['owner']}>
+              <div>Owner Home</div>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/app/owner/compare"
+          path="/owner/fuel-prices"
           element={
-            <ProtectedRoute roles={['owner', 'admin']}>
-              <StationComparison />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/owner/sales"
-          element={
-            <ProtectedRoute roles={['owner', 'admin']}>
-              <SalesRevenue />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/owner/stock"
-          element={
-            <ProtectedRoute roles={['owner', 'admin']}>
-              <StockSupply />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/owner/variance"
-          element={
-            <ProtectedRoute roles={['owner', 'admin']}>
-              <VarianceLosses />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/owner/reports"
-          element={
-            <ProtectedRoute roles={['owner', 'admin']}>
-              <ReportGenerator />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/admin"
-          element={
-            <ProtectedRoute roles={['admin', 'owner']}>
-              <AdminHome />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/admin/users"
-          element={
-            <ProtectedRoute roles={['admin', 'owner']}>
-              <UserManagement />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/admin/stations"
-          element={
-            <ProtectedRoute roles={['admin', 'owner']}>
-              <StationManagement />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/admin/thresholds"
-          element={
-            <ProtectedRoute roles={['admin', 'owner']}>
-              <ThresholdsRules />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/admin/payment-methods"
-          element={
-            <ProtectedRoute roles={['admin', 'owner']}>
-              <PaymentMethods />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/admin/fuel-prices"
-          element={
-            <ProtectedRoute roles={['admin', 'owner']}>
+            <ProtectedRoute allowedRoles={['owner']}>
               <FuelPrices />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/app/admin/investigations"
+          path="/owner/thresholds"
           element={
-            <ProtectedRoute roles={['admin', 'owner']}>
+            <ProtectedRoute allowedRoles={['owner']}>
+              <ThresholdsRules />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <div>Admin Home</div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/fuel-prices"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <FuelPrices readOnly={true} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <ReportGenerator />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/investigations"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
               <InvestigationAudit />
             </ProtectedRoute>
           }
         />
+
+        {/* Manager routes */}
         <Route
-          path="/app/junior-admin"
+          path="/manager"
           element={
-            <ProtectedRoute roles={['junior_admin']}>
-              <JuniorAdminHome />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/manager"
-          element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+            <ProtectedRoute allowedRoles={['manager']}>
               <ManagerHome />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/app/manager/shifts"
+          path="/manager/daily-sales"
           element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
-              <ShiftReview />
+            <ProtectedRoute allowedRoles={['manager']}>
+              <div>Daily Sales Form — coming soon</div>
             </ProtectedRoute>
           }
         />
         <Route
-          path="/app/manager/correct"
+          path="/manager/delivery"
           element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
-              <ShiftCorrection />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/manager/close"
-          element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
-              <ShiftClose />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/manager/stock"
-          element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
-              <StationStock />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/manager/dip"
-          element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
-              <DipEntry />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/manager/delivery"
-          element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
+            <ProtectedRoute allowedRoles={['manager']}>
               <DeliveryEntry />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/app/manager/cash"
+          path="/manager/dip"
           element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
-              <StationCash />
+            <ProtectedRoute allowedRoles={['manager']}>
+              <DipEntry />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/app/manager/cash/new"
+          path="/manager/deposit"
           element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
-              <CashMovementEntry />
+            <ProtectedRoute allowedRoles={['manager']}>
+              <div>Deposit Slip — coming soon</div>
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/app/manager/flags"
-          element={
-            <ProtectedRoute roles={['manager', 'admin', 'owner']}>
-              <FlagsInvestigations />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/junior-admin/dip-verify"
-          element={
-            <ProtectedRoute roles={['junior_admin', 'admin', 'owner']}>
-              <DipVerification />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/junior-admin/station-monitoring"
-          element={
-            <ProtectedRoute roles={['junior_admin', 'admin', 'owner']}>
-              <StationMonitoring />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/attendant"
-          element={
-            <ProtectedRoute roles={['attendant']}>
-              <AttendantHome />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/app/profile"
-          element={
-            <ProtectedRoute roles={['owner', 'admin', 'junior_admin', 'manager', 'attendant']}>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   )
