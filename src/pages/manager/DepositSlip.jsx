@@ -17,7 +17,8 @@ export default function DepositSlip() {
   const [pendingForm, setPendingForm] = useState(null)
   const [expectedCash, setExpectedCash] = useState(null)
   const [amount, setAmount]         = useState('')
-  const [bankName, setBankName]     = useState('')
+  const [bankSelect, setBankSelect] = useState('')
+  const [bankOther, setBankOther]   = useState('')
   const [photoFile, setPhotoFile]   = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [saving, setSaving]         = useState(false)
@@ -65,14 +66,24 @@ export default function DepositSlip() {
     setPhotoPreview(URL.createObjectURL(file))
   }
 
+  const resolvedBankName = bankSelect === 'Other' ? bankOther.trim() : bankSelect
+
   async function handleSave() {
     if (!pendingForm) return
     if (!amount || parseFloat(amount) <= 0) {
       setError('Enter a valid deposit amount.')
       return
     }
-    if (!bankName.trim()) {
+    if (!bankSelect) {
+      setError('Select a bank.')
+      return
+    }
+    if (bankSelect === 'Other' && !bankOther.trim()) {
       setError('Enter the bank name.')
+      return
+    }
+    if (!photoFile) {
+      setError('Attach a photo of the deposit slip.')
       return
     }
     setError('')
@@ -80,7 +91,7 @@ export default function DepositSlip() {
 
     let photoUrl = null
 
-    if (photoFile) {
+    {
       const ext = photoFile.name.split('.').pop()
       const path = `${pendingForm.id}/${Date.now()}.${ext}`
       const { error: uploadErr } = await supabase.storage
@@ -103,7 +114,7 @@ export default function DepositSlip() {
       .insert({
         form_id:        pendingForm.id,
         deposit_amount: parseFloat(amount),
-        bank_name:      bankName.trim(),
+        bank_name:      resolvedBankName,
         photo_url:      photoUrl,
         submitted_by:   user.id,
         submitted_at:   new Date().toISOString(),
@@ -202,13 +213,31 @@ export default function DepositSlip() {
                 <label className="text-sm font-medium text-gray-700 block mb-1">
                   Bank Name
                 </label>
-                <input
-                  type="text"
-                  value={bankName}
-                  onChange={e => setBankName(e.target.value)}
-                  placeholder="e.g. National Bank"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-                />
+                <select
+                  value={bankSelect}
+                  onChange={e => setBankSelect(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+                >
+                  <option value="">Select bank</option>
+                  <option>National Bank of Malawi</option>
+                  <option>Standard Bank</option>
+                  <option>FDH Bank</option>
+                  <option>NBS Bank</option>
+                  <option>CDH Investment Bank</option>
+                  <option>First Capital Bank</option>
+                  <option>Ecobank</option>
+                  <option>MyBucks Banking Corporation</option>
+                  <option>Other</option>
+                </select>
+                {bankSelect === 'Other' && (
+                  <input
+                    type="text"
+                    value={bankOther}
+                    onChange={e => setBankOther(e.target.value)}
+                    placeholder="Enter bank name"
+                    className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  />
+                )}
               </div>
 
               <div>
@@ -229,7 +258,7 @@ export default function DepositSlip() {
                   className="w-full border-2 border-dashed border-gray-200 rounded-lg px-4 py-3 text-sm text-center transition-colors hover:border-teal-300 hover:text-teal-600"
                   style={{ color: photoFile ? '#1988A3' : undefined }}
                 >
-                  {photoFile ? photoFile.name : 'Tap to attach photo (optional)'}
+                  {photoFile ? photoFile.name : 'Tap to attach photo'}
                 </button>
                 {photoPreview && (
                   <img
