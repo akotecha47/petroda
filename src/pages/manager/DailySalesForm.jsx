@@ -91,10 +91,10 @@ function PumpBlock({ pumps, fuelType, meterState, onMeter, dipStock, receipts, o
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-2 py-2 text-left text-xs text-gray-500 w-14">Pump</th>
-                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Closing Meter</th>
-                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Opening Meter</th>
-                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Less Pump Test</th>
-                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Out Flow</th>
+                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Closing Meter (L)</th>
+                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Opening Meter (L)</th>
+                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Less Pump Test (L)</th>
+                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Out Flow (L)</th>
                 </tr>
               </thead>
               <tbody>
@@ -125,6 +125,7 @@ function PumpBlock({ pumps, fuelType, meterState, onMeter, dipStock, receipts, o
           <div className="grid grid-cols-3 gap-2 mt-2 bg-gray-50 border border-gray-200 rounded p-2">
             <div>
               <p className="text-xs text-gray-500 mb-1">Total Sales (L)</p>
+
               <Calc value={totalOutflow} />
             </div>
             <div>
@@ -147,27 +148,27 @@ function PumpBlock({ pumps, fuelType, meterState, onMeter, dipStock, receipts, o
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-2 py-2 text-left text-xs text-gray-500"></th>
                   <th className="px-2 py-2 text-right text-xs text-gray-500 w-24">Qty (L)</th>
-                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-24">Rate</th>
-                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Amount</th>
+                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-24">Rate (MWK)</th>
+                  <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Amount (MWK)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-gray-100">
                   <td className="px-2 py-1.5 text-xs text-gray-600 whitespace-nowrap">Credit Sales</td>
                   <td className="px-2 py-1.5"><Num value={b.credit_qty} onChange={v => onBuildup(fuelType, 'credit_qty', v)} disabled={disabled} /></td>
-                  <td className="px-2 py-1.5"><Num value={b.credit_rate} onChange={v => onBuildup(fuelType, 'credit_rate', v)} disabled={disabled} /></td>
+                  <td className="px-2 py-1.5"><Num value={b.credit_rate} onChange={() => {}} disabled={true} /></td>
                   <td className="px-2 py-1.5"><Calc value={creditAmt} /></td>
                 </tr>
                 <tr className="border-b border-gray-100">
                   <td className="px-2 py-1.5 text-xs text-gray-600 whitespace-nowrap">Petro Card</td>
                   <td className="px-2 py-1.5"><Num value={b.petro_card_qty} onChange={v => onBuildup(fuelType, 'petro_card_qty', v)} disabled={disabled} /></td>
-                  <td className="px-2 py-1.5"><Num value={b.petro_card_rate} onChange={v => onBuildup(fuelType, 'petro_card_rate', v)} disabled={disabled} /></td>
+                  <td className="px-2 py-1.5"><Num value={b.petro_card_rate} onChange={() => {}} disabled={true} /></td>
                   <td className="px-2 py-1.5"><Calc value={petroCardAmt} /></td>
                 </tr>
                 <tr>
                   <td className="px-2 py-1.5 text-xs text-gray-600 whitespace-nowrap">Cash Sales</td>
                   <td className="px-2 py-1.5"><Num value={b.cash_qty} onChange={v => onBuildup(fuelType, 'cash_qty', v)} disabled={disabled} /></td>
-                  <td className="px-2 py-1.5"><Num value={b.cash_rate} onChange={v => onBuildup(fuelType, 'cash_rate', v)} disabled={disabled} /></td>
+                  <td className="px-2 py-1.5"><Num value={b.cash_rate} onChange={() => {}} disabled={true} /></td>
                   <td className="px-2 py-1.5"><Calc value={cashAmt} /></td>
                 </tr>
               </tbody>
@@ -202,9 +203,9 @@ function LubricantSection({ skus, lubState, onLub, disabled }) {
             <th className="px-2 py-2 text-right text-xs text-gray-500 w-20">Total</th>
             <th className="px-2 py-2 text-right text-xs text-gray-500 w-22">Cash Qty</th>
             <th className="px-2 py-2 text-right text-xs text-gray-500 w-20">CR Qty</th>
-            <th className="px-2 py-2 text-right text-xs text-gray-500 w-24">Unit Price</th>
-            <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Cash Amt</th>
-            <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">CR Amt</th>
+            <th className="px-2 py-2 text-right text-xs text-gray-500 w-24">Unit Price (MWK)</th>
+            <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">Cash Amt (MWK)</th>
+            <th className="px-2 py-2 text-right text-xs text-gray-500 w-28">CR Amt (MWK)</th>
             <th className="px-2 py-2 text-right text-xs text-gray-500 w-24">Closing</th>
           </tr>
         </thead>
@@ -284,27 +285,27 @@ function SummarySection({ buildupState, lubState, skus, summaryState, onSummary,
     <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Left — Cash summary */}
       <div>
-        <Row label="Fuel Credit Sales"><Calc value={creditAmt} /></Row>
-        <Row label="Petro Card Sales"><Calc value={petroCardAmt} /></Row>
-        <Row label="Total"><Calc value={creditTotal} /></Row>
-        <Row label="Fuel Cash Sales"><Calc value={fuelCashAmt} /></Row>
-        <Row label="Lubs Cash Sales"><Calc value={lubsCashAmt} /></Row>
+        <Row label="Fuel Credit Sales (MWK)"><Calc value={creditAmt} /></Row>
+        <Row label="Petro Card Sales (MWK)"><Calc value={petroCardAmt} /></Row>
+        <Row label="Total (MWK)"><Calc value={creditTotal} /></Row>
+        <Row label="Fuel Cash Sales (MWK)"><Calc value={fuelCashAmt} /></Row>
+        <Row label="Lubs Cash Sales (MWK)"><Calc value={lubsCashAmt} /></Row>
         <Row label="Airtime (MWK)">
           <Num value={summaryState.airtime_sales} onChange={v => onSummary('airtime_sales', v)} disabled={disabled} />
         </Row>
-        <Row label="Total Cash"><Calc value={totalCash} /></Row>
+        <Row label="Total Cash (MWK)"><Calc value={totalCash} /></Row>
         <div className="border-t border-gray-200 my-2" />
         <Row label="Cash Deposited (MWK)">
           <Num value={summaryState.cash_deposited} onChange={v => onSummary('cash_deposited', v)} disabled={disabled} />
         </Row>
-        <Row label="Cheques Deposited">
+        <Row label="Cheques Deposited (MWK)">
           <Num value={summaryState.cheques_deposited} onChange={v => onSummary('cheques_deposited', v)} disabled={disabled} />
         </Row>
-        <Row label="Master & Visa Card">
+        <Row label="Master & Visa Card (MWK)">
           <Num value={summaryState.master_visa_card} onChange={v => onSummary('master_visa_card', v)} disabled={disabled} />
         </Row>
-        <Row label="Total Deposit"><Calc value={totalDeposit} /></Row>
-        <Row label="Under / Over Deposit"><Calc value={underOver} negative /></Row>
+        <Row label="Total Deposit (MWK)"><Calc value={totalDeposit} /></Row>
+        <Row label="Under / Over Deposit (MWK)"><Calc value={underOver} negative /></Row>
       </div>
 
       {/* Right — TNM */}
@@ -416,10 +417,10 @@ export default function DailySalesForm() {
 
       if (!fId) { setPageLoading(false); return }
 
-      // Load all form data + dip stock in parallel
+      // Load all form data + dip stock + fuel prices in parallel
       const [
         { data: meterData }, { data: buildupData }, { data: lubData },
-        { data: summaryData }, { data: dipEntry },
+        { data: summaryData }, { data: dipEntry }, { data: pricesData },
       ] = await Promise.all([
         supabase.from('meter_readings').select('*').eq('form_id', fId),
         supabase.from('sales_buildup').select('*').eq('form_id', fId),
@@ -430,7 +431,14 @@ export default function DailySalesForm() {
           .gte('recorded_at', today + 'T00:00:00')
           .lte('recorded_at', today + 'T23:59:59')
           .order('recorded_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('fuel_prices').select('fuel_type, price_per_litre')
+          .order('effective_from', { ascending: false }).limit(10),
       ])
+
+      const currentPrices = { PMA: '', AGO: '' }
+      ;(pricesData ?? []).forEach(p => {
+        if (currentPrices[p.fuel_type] === '') currentPrices[p.fuel_type] = p.price_per_litre
+      })
       if (cancelled) return
 
       // Meter state
@@ -446,21 +454,28 @@ export default function DailySalesForm() {
       })
       setMeterState(mInit); meterRef.current = mInit
 
-      // Buildup state
+      // Buildup state — rates always come from current fuel prices (read-only for manager)
       const bInit = { PMA: { id: null }, AGO: { id: null } }
       ;(buildupData ?? []).forEach(b => {
-        if (b.fuel_type === 'PMA' || b.fuel_type === 'AGO') {
-          bInit[b.fuel_type] = {
+        const ft = b.fuel_type
+        if (ft === 'PMA' || ft === 'AGO') {
+          bInit[ft] = {
             id: b.id,
-            credit_qty:     b.credit_qty     || '',
-            credit_rate:    b.credit_rate    || '',
+            credit_qty:      b.credit_qty      || '',
             petro_card_qty:  b.petro_card_qty  || '',
-            petro_card_rate: b.petro_card_rate || '',
-            cash_qty:       b.cash_qty       || '',
-            cash_rate:      b.cash_rate      || '',
+            cash_qty:        b.cash_qty        || '',
+            credit_rate:     currentPrices[ft],
+            petro_card_rate: currentPrices[ft],
+            cash_rate:       currentPrices[ft],
           }
         }
       })
+      // Ensure rates set for fuel types without a saved buildup row
+      for (const ft of ['PMA', 'AGO']) {
+        bInit[ft].credit_rate     = currentPrices[ft]
+        bInit[ft].petro_card_rate = currentPrices[ft]
+        bInit[ft].cash_rate       = currentPrices[ft]
+      }
       setBuildupState(bInit); buildupRef.current = bInit
 
       // Lub state

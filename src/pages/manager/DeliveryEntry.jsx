@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
+import { fuelLabel } from '../../lib/fuelLabels'
 
 function nowLocalDatetime() {
   const d = new Date()
@@ -46,10 +47,14 @@ export default function DeliveryEntry() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3">
-        <Link to="/app/manager/stock" className="text-gray-400 hover:text-gray-700 text-sm">← Stock</Link>
-        <span className="text-gray-300">|</span>
-        <span className="font-semibold text-gray-800">Record Delivery</span>
+      <div className="px-5 py-3.5 flex items-center justify-between" style={{ backgroundColor: '#06476B' }}>
+        <p className="text-white font-bold leading-tight">Record Delivery</p>
+        <button
+          onClick={() => navigate('/manager')}
+          className="text-sm px-3 py-1.5 rounded-lg text-white border border-white/30 hover:bg-white/10"
+        >
+          ← Back
+        </button>
       </div>
 
       <div className="max-w-lg mx-auto px-6 py-8">
@@ -58,18 +63,18 @@ export default function DeliveryEntry() {
           <div>
             <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Fuel Type</p>
             <div className="flex gap-2">
-              {['pma', 'ago'].map(f => (
+              {[{ value: 'pma', label: fuelLabel('PMA') }, { value: 'ago', label: fuelLabel('AGO') }].map(f => (
                 <button
-                  key={f}
+                  key={f.value}
                   type="button"
-                  onClick={() => setFuelType(f)}
-                  className={`px-5 py-2 rounded-lg text-sm font-medium uppercase transition-colors ${
-                    fuelType === f
+                  onClick={() => setFuelType(f.value)}
+                  className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    fuelType === f.value
                       ? 'bg-gray-900 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  {f}
+                  {f.label}
                 </button>
               ))}
             </div>
@@ -136,12 +141,13 @@ export default function DeliveryEntry() {
             >
               {saving ? 'Saving…' : 'Save Delivery'}
             </button>
-            <Link
-              to="/app/manager/stock"
+            <button
+              type="button"
+              onClick={() => navigate('/manager')}
               className="text-sm font-medium px-6 py-2.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
             >
               Cancel
-            </Link>
+            </button>
           </div>
         </form>
       </div>

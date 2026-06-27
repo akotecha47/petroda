@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
+import OwnerHome from './pages/owner/OwnerHome'
+import LubricantPrices from './pages/owner/LubricantPrices'
 import FuelPrices from './pages/admin/FuelPrices'
 import ThresholdsRules from './pages/admin/ThresholdsRules'
 import UserManagement from './pages/admin/UserManagement'
@@ -33,7 +35,7 @@ export default function App() {
           path="/owner"
           element={
             <ProtectedRoute allowedRoles={['owner']}>
-              <div>Owner Home</div>
+              <OwnerHome />
             </ProtectedRoute>
           }
         />
@@ -42,6 +44,14 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={['owner']}>
               <FuelPrices />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/owner/lubricant-prices"
+          element={
+            <ProtectedRoute allowedRoles={['owner']}>
+              <LubricantPrices />
             </ProtectedRoute>
           }
         />

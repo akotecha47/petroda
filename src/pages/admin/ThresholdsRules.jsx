@@ -1,24 +1,31 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import AdminNav from '../../components/admin/AdminNav'
 
-const RULE_LABELS = {
-  fuel_variance_warning: 'Fuel Variance Warning',
-  fuel_variance_critical: 'Fuel Variance Critical',
-  payment_variance_warning: 'Payment Variance Warning',
-  payment_variance_critical: 'Payment Variance Critical',
-  positive_variance_warning: 'Positive Variance Warning',
-  positive_variance_critical: 'Positive Variance Critical',
-  low_stock_warning: 'Low Stock Warning',
-  low_stock_critical: 'Low Stock Critical',
-}
+const THRESHOLDS = [
+  {
+    key: 'fuel_variance_limit',
+    label: 'Fuel Variance Limit',
+    unit: 'L',
+    description: 'Flag if fuel variance exceeds this many litres',
+    defaultValue: 100,
+  },
+  {
+    key: 'cash_variance_limit',
+    label: 'Cash Variance Limit',
+    unit: 'MWK',
+    description: 'Flag if cash variance exceeds this amount',
+    defaultValue: 5000,
+  },
+]
 
 export default function ThresholdsRules() {
   const { user } = useAuth()
-  const [rows, setRows] = useState([])
+  const navigate = useNavigate()
+  const [rows, setRows] = useState({})
   const [loading, setLoading] = useState(true)
-  const [editId, setEditId] = useState(null)
+  const [editKey, setEditKey] = useState(null)
   const [editValue, setEditValue] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -27,9 +34,29 @@ export default function ThresholdsRules() {
     setLoading(true)
     const { data } = await supabase
       .from('thresholds')
-      .select('id, rule_key, rule_value, description, updated_by, updated_at, users!updated_by(full_name)')
-      .order('rule_key')
-    setRows(data ?? [])
+      .select('id, rule_key, rule_value, updated_by, updated_at, users!updated_by(full_name)')
+      .in('rule_key', ['fuel_variance_limit', 'cash_variance_limit'])
+
+    const byKey = {}
+    ;(data ?? []).forEach(r => { byKey[r.rule_key] = r })
+
+    for (const t of THRESHOLDS) {
+      if (!byKey[t.key] && user?.id) {
+        const { data: seeded } = await supabase
+          .from('thresholds')
+          .insert({
+            rule_key: t.key,
+            rule_value: t.defaultValue,
+            updated_by: user.id,
+            updated_at: new Date().toISOString(),
+          })
+          .select('id, rule_key, rule_value, updated_by, updated_at, users!updated_by(full_name)')
+          .single()
+        if (seeded) byKey[t.key] = seeded
+      }
+    }
+
+    setRows(byKey)
     setLoading(false)
   }
 
@@ -38,23 +65,24 @@ export default function ThresholdsRules() {
     loadData()
   }, [user])
 
-  function startEdit(row) {
-    setEditId(row.id)
-    setEditValue((row.rule_value * 100).toFixed(2))
+  function startEdit(key, currentValue) {
+    setEditKey(key)
+    setEditValue(currentValue != null ? String(currentValue) : '')
     setError('')
   }
 
-  async function handleSave(row) {
+  async function handleSave(key) {
     const parsed = parseFloat(editValue)
     if (isNaN(parsed) || parsed < 0) { setError('Enter a valid positive number.'); return }
     setSaving(true)
+    const row = rows[key]
     const { error: err } = await supabase
       .from('thresholds')
-      .update({ rule_value: parsed / 100, updated_by: user.id, updated_at: new Date().toISOString() })
+      .update({ rule_value: parsed, updated_by: user.id, updated_at: new Date().toISOString() })
       .eq('id', row.id)
     setSaving(false)
     if (err) { setError(err.message); return }
-    setEditId(null)
+    setEditKey(null)
     loadData()
   }
 
@@ -62,133 +90,94 @@ export default function ThresholdsRules() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AdminNav />
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-6">Thresholds & Rules</h1>
-        <p className="text-sm text-gray-500 mb-6">Values are stored as decimals. Display and edit are in percentage (e.g. 0.5 = 0.5%).</p>
+      <div className="px-5 py-3.5 flex items-center justify-between" style={{ backgroundColor: '#06476B' }}>
+        <div>
+          <p className="text-white font-bold leading-tight">Variance Thresholds</p>
+          <p className="text-xs" style={{ color: '#89c4d4' }}>Values that trigger flags in reconciliation</p>
+        </div>
+        <button
+          onClick={() => navigate('/owner')}
+          className="text-sm px-3 py-1.5 rounded-lg text-white border border-white/30 hover:bg-white/10"
+        >
+          ← Back
+        </button>
+      </div>
 
+      <div className="max-w-2xl mx-auto px-5 py-6 space-y-4">
         {loading ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-5 h-32 animate-pulse" />
+          [...Array(2)].map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-gray-200 p-6 h-24 animate-pulse" />
+          ))
         ) : (
-          <>
-            {/* Mobile: threshold cards */}
-            <div className="md:hidden space-y-3">
-              {rows.map(row => (
-                <div key={row.id} className="bg-white rounded-xl border border-gray-200 p-4">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="min-w-0">
-                      <p className="font-medium text-gray-800 text-sm">{RULE_LABELS[row.rule_key] ?? row.rule_key}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{row.description ?? '—'}</p>
+          THRESHOLDS.map(t => {
+            const row = rows[t.key]
+            const isEditing = editKey === t.key
+            return (
+              <div key={t.key} className="bg-white rounded-xl border border-gray-200 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-800 text-sm">{t.label}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{t.description}</p>
+                  </div>
+                  {!isEditing && (
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <div className="text-right">
+                        <p className="text-2xl font-bold tabular-nums text-gray-900 leading-none">
+                          {row ? row.rule_value.toLocaleString() : '—'}
+                          <span className="text-sm font-normal text-gray-400 ml-1">{t.unit}</span>
+                        </p>
+                        {row?.updated_at && (
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {new Date(row.updated_at).toLocaleDateString()}
+                            {row.users?.full_name && ` · ${row.users.full_name}`}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => startEdit(t.key, row?.rule_value)}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg text-white hover:opacity-90"
+                        style={{ backgroundColor: '#1988A3' }}
+                      >
+                        Edit
+                      </button>
                     </div>
-                    {editId === row.id ? (
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={editValue}
-                          onChange={e => setEditValue(e.target.value)}
-                          className="border border-gray-200 rounded px-2 py-1 text-sm w-20 text-right"
-                        />
-                        <span className="text-gray-400 text-xs">%</span>
-                      </div>
-                    ) : (
-                      <span className="text-2xl font-bold tabular-nums text-gray-900 flex-shrink-0">
-                        {(row.rule_value * 100).toFixed(2)}
-                        <span className="text-sm font-normal text-gray-400 ml-0.5">%</span>
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-gray-400">
-                      {row.updated_at
-                        ? `${new Date(row.updated_at).toLocaleDateString()} · ${row.users?.full_name ?? '—'}`
-                        : 'Not updated'}
-                    </p>
-                    {editId === row.id ? (
-                      <div className="flex items-center gap-2">
-                        {error && <span className="text-xs text-red-500">{error}</span>}
-                        <button
-                          onClick={() => handleSave(row)}
-                          disabled={saving}
-                          className="text-xs px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-700 disabled:opacity-50"
-                        >
-                          {saving ? '…' : 'Save'}
-                        </button>
-                        <button onClick={() => setEditId(null)} className="text-xs text-gray-400 hover:text-gray-700">Cancel</button>
-                      </div>
-                    ) : (
-                      <button onClick={() => startEdit(row)} className="text-xs text-gray-400 hover:text-gray-700 underline">Edit</button>
-                    )}
-                  </div>
+                  )}
                 </div>
-              ))}
-            </div>
 
-            {/* Desktop: thresholds table */}
-            <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Rule</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Description</th>
-                    <th className="text-right px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Value</th>
-                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-400 uppercase tracking-wide">Last Updated</th>
-                    <th className="px-5 py-3" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map(row => (
-                    <tr key={row.id} className="border-b border-gray-50 last:border-0">
-                      <td className="px-5 py-3 text-gray-800 font-medium">{RULE_LABELS[row.rule_key] ?? row.rule_key}</td>
-                      <td className="px-5 py-3 text-gray-500 text-xs">{row.description ?? '—'}</td>
-                      <td className="px-5 py-3 text-right">
-                        {editId === row.id ? (
-                          <div className="flex items-center justify-end gap-1">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={editValue}
-                              onChange={e => setEditValue(e.target.value)}
-                              className="border border-gray-200 rounded px-2 py-1 text-sm w-20 text-right"
-                            />
-                            <span className="text-gray-400 text-xs">%</span>
-                          </div>
-                        ) : (
-                          <span className="tabular-nums font-medium text-gray-700">
-                            {(row.rule_value * 100).toFixed(2)}%
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3 text-gray-400 text-xs">
-                        {row.updated_at
-                          ? `${new Date(row.updated_at).toLocaleDateString()} by ${row.users?.full_name ?? '—'}`
-                          : '—'}
-                      </td>
-                      <td className="px-5 py-3 text-right whitespace-nowrap">
-                        {editId === row.id ? (
-                          <>
-                            {error && <span className="text-xs text-red-500 mr-2">{error}</span>}
-                            <button
-                              onClick={() => handleSave(row)}
-                              disabled={saving}
-                              className="text-xs px-3 py-1 bg-gray-900 text-white rounded hover:bg-gray-700 disabled:opacity-50 mr-2"
-                            >
-                              {saving ? '…' : 'Save'}
-                            </button>
-                            <button onClick={() => setEditId(null)} className="text-xs text-gray-400 hover:text-gray-700">Cancel</button>
-                          </>
-                        ) : (
-                          <button onClick={() => startEdit(row)} className="text-xs text-gray-400 hover:text-gray-700 underline">Edit</button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
+                {isEditing && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="1"
+                        min="0"
+                        value={editValue}
+                        onChange={e => setEditValue(e.target.value)}
+                        className="w-36 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-teal-400"
+                        autoFocus
+                      />
+                      <span className="text-sm text-gray-500">{t.unit}</span>
+                      <button
+                        onClick={() => handleSave(t.key)}
+                        disabled={saving}
+                        className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 hover:opacity-90"
+                        style={{ backgroundColor: '#06476B' }}
+                      >
+                        {saving ? 'Saving…' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => { setEditKey(null); setError('') }}
+                        className="px-3 py-2 text-sm text-gray-500 hover:text-gray-700"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+                  </div>
+                )}
+              </div>
+            )
+          })
         )}
       </div>
     </div>
