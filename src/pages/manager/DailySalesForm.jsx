@@ -551,7 +551,7 @@ export default function DailySalesForm() {
   // ── Auto-save ─────────────────────────────────────────────────────────────────
   const performSave = useCallback(async () => {
     const fId = formIdRef.current
-    if (!fId || formStatusRef.current === 'submitted') return
+    if (!fId || formStatusRef.current === 'submitted' || formStatusRef.current === 'reconciled') return
     setSaving(true)
 
     try {
@@ -684,7 +684,7 @@ export default function DailySalesForm() {
   }, [])
 
   function scheduleSave() {
-    if (!initialized.current || formStatusRef.current === 'submitted') return
+    if (!initialized.current || formStatusRef.current === 'submitted' || formStatusRef.current === 'reconciled') return
     clearTimeout(saveTimerRef.current)
     saveTimerRef.current = setTimeout(performSave, 1500)
   }
@@ -773,7 +773,7 @@ export default function DailySalesForm() {
     )
   }
 
-  const readOnly = formStatus === 'submitted'
+  const readOnly = formStatus === 'submitted' || formStatus === 'reconciled'
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">

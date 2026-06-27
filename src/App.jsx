@@ -8,6 +8,8 @@ import FuelPrices from './pages/admin/FuelPrices'
 import ThresholdsRules from './pages/admin/ThresholdsRules'
 import UserManagement from './pages/admin/UserManagement'
 import ReportGenerator from './pages/ReportGenerator'
+import AdminHome from './pages/admin/AdminHome'
+import Reconciliation from './pages/admin/Reconciliation'
 import InvestigationAudit from './pages/admin/InvestigationAudit'
 import ManagerHome from './pages/manager/ManagerHome'
 import DailySalesForm from './pages/manager/DailySalesForm'
@@ -70,7 +72,7 @@ export default function App() {
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <div>Admin Home</div>
+              <AdminHome />
             </ProtectedRoute>
           }
         />
@@ -95,6 +97,14 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <ReportGenerator />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reconciliation"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'owner']}>
+              <Reconciliation />
             </ProtectedRoute>
           }
         />
