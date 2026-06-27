@@ -64,7 +64,7 @@ function FuelLabel({ children }) {
 
 // ─── Section 1: Meter Readings + Sales Buildup ─────────────────────────────────
 
-function PumpBlock({ pumps, fuelType, meterState, onMeter, dipStock, receipts, onReceipt, buildupState, onBuildup, disabled }) {
+function PumpBlock({ pumps, fuelType, meterState, onMeter, openingDipL, closingDipL, receipts, onReceipt, buildupState, onBuildup, disabled }) {
   const label = fuelType === 'PMA' ? 'Petrol' : 'Diesel'
   const fuelPumps = pumps.filter(p => p.fuel_type === fuelType)
 
@@ -82,6 +82,14 @@ function PumpBlock({ pumps, fuelType, meterState, onMeter, dipStock, receipts, o
   return (
     <div className="mb-4">
       <FuelLabel>{label}</FuelLabel>
+
+      <div className="px-4 py-1.5 bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
+        Opening Stock:{' '}
+        {openingDipL != null
+          ? <><span className="font-medium text-gray-700">{Math.round(openingDipL).toLocaleString()} L</span><span className="text-gray-400"> (from dip)</span></>
+          : <span className="text-gray-400">not recorded</span>
+        }
+      </div>
 
       <div className="flex flex-col lg:flex-row gap-0 lg:gap-6 p-4">
         {/* Pump readings */}
@@ -130,7 +138,10 @@ function PumpBlock({ pumps, fuelType, meterState, onMeter, dipStock, receipts, o
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Stock (L)</p>
-              <Calc value={dipStock[fuelType] ?? 0} />
+              {closingDipL != null
+                ? <Calc value={closingDipL} />
+                : <div className="w-full px-2 py-1.5 bg-gray-100 border border-gray-200 rounded text-sm text-right tabular-nums text-gray-400">—</div>
+              }
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Receipt Ref</p>
@@ -339,7 +350,8 @@ export default function DailySalesForm() {
   const [formStatus, setFormStatus]     = useState('draft')
   const [pumps, setPumps]               = useState([])
   const [skus, setSkus]                 = useState([])
-  const [dipStock, setDipStock]         = useState({ PMA: 0, AGO: 0 })
+  const [openingDipL, setOpeningDipL]   = useState({ PMA: null, AGO: null })
+  const [closingDipL, setClosingDipL]   = useState({ PMA: null, AGO: null })
   const [receipts, setReceipts]         = useState({ pma: '', ago: '' })
   const [meterState, setMeterState]     = useState({})
   const [buildupState, setBuildupState] = useState({ PMA: {}, AGO: {} })
@@ -392,7 +404,11 @@ export default function DailySalesForm() {
       let fId = null, fStatus = 'draft'
       const { data: existing } = await supabase
         .from('daily_sales_forms')
-        .select('id, status, receipt_reference')
+        .select([
+          'id', 'status', 'receipt_reference',
+          'opening_dip_petrol_litres', 'opening_dip_diesel_litres',
+          'closing_dip_petrol_litres', 'closing_dip_diesel_litres',
+        ].join(', '))
         .eq('station_id', user.station_id).eq('form_date', today)
         .maybeSingle()
 
@@ -403,6 +419,14 @@ export default function DailySalesForm() {
           const rec = { pma: r.pma || '', ago: r.ago || '' }
           setReceipts(rec); receiptsRef.current = rec
         } catch {}
+        setOpeningDipL({
+          PMA: existing.opening_dip_petrol_litres ?? null,
+          AGO: existing.opening_dip_diesel_litres ?? null,
+        })
+        setClosingDipL({
+          PMA: existing.closing_dip_petrol_litres ?? null,
+          AGO: existing.closing_dip_diesel_litres ?? null,
+        })
       } else {
         const { data: created } = await supabase
           .from('daily_sales_forms')
@@ -417,20 +441,15 @@ export default function DailySalesForm() {
 
       if (!fId) { setPageLoading(false); return }
 
-      // Load all form data + dip stock + fuel prices in parallel
+      // Load all form data + fuel prices in parallel
       const [
         { data: meterData }, { data: buildupData }, { data: lubData },
-        { data: summaryData }, { data: dipEntry }, { data: pricesData },
+        { data: summaryData }, { data: pricesData },
       ] = await Promise.all([
         supabase.from('meter_readings').select('*').eq('form_id', fId),
         supabase.from('sales_buildup').select('*').eq('form_id', fId),
         supabase.from('lubricant_entries').select('*').eq('form_id', fId),
         supabase.from('daily_summary').select('*').eq('form_id', fId).maybeSingle(),
-        supabase.from('dip_entries').select('id')
-          .eq('station_id', user.station_id)
-          .gte('recorded_at', today + 'T00:00:00')
-          .lte('recorded_at', today + 'T23:59:59')
-          .order('recorded_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('fuel_prices').select('fuel_type, price_per_litre')
           .order('effective_from', { ascending: false }).limit(10),
       ])
@@ -513,23 +532,6 @@ export default function DailySalesForm() {
           summaryRef.current = s
           return s
         })
-      }
-
-      // Dip stock
-      if (dipEntry) {
-        const { data: dipReadings } = await supabase
-          .from('dip_tank_readings')
-          .select('calculated_litres, tanks(fuel_type)')
-          .eq('dip_entry_id', dipEntry.id)
-        if (!cancelled && dipReadings) {
-          const stock = { PMA: 0, AGO: 0 }
-          dipReadings.forEach(r => {
-            const ft = r.tanks?.fuel_type?.toUpperCase()
-            if (ft === 'PMA') stock.PMA += r.calculated_litres ?? 0
-            else if (ft === 'AGO') stock.AGO += r.calculated_litres ?? 0
-          })
-          setDipStock(stock)
-        }
       }
 
       if (!cancelled) {
@@ -797,12 +799,14 @@ export default function DailySalesForm() {
           <SectionTitle>Section 1 — Meter Readings</SectionTitle>
           <PumpBlock pumps={pumps} fuelType="PMA"
             meterState={meterState} onMeter={onMeter}
-            dipStock={dipStock} receipts={receipts} onReceipt={onReceipt}
+            openingDipL={openingDipL.PMA} closingDipL={closingDipL.PMA}
+            receipts={receipts} onReceipt={onReceipt}
             buildupState={buildupState} onBuildup={onBuildup} disabled={readOnly} />
           <div className="border-t border-gray-100" />
           <PumpBlock pumps={pumps} fuelType="AGO"
             meterState={meterState} onMeter={onMeter}
-            dipStock={dipStock} receipts={receipts} onReceipt={onReceipt}
+            openingDipL={openingDipL.AGO} closingDipL={closingDipL.AGO}
+            receipts={receipts} onReceipt={onReceipt}
             buildupState={buildupState} onBuildup={onBuildup} disabled={readOnly} />
         </div>
 

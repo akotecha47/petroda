@@ -1,25 +1,42 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { todayISO, getOrCreateShift } from '../../lib/shiftUtils'
+import { todayISO } from '../../lib/shiftUtils'
 import { interpolateLitres } from '../../lib/dipUtils'
 import { fuelLabel } from '../../lib/fuelLabels'
+
+const EMPTY_DIPS = {
+  opening_dip_petrol_cm: '',
+  opening_dip_petrol_litres: null,
+  opening_dip_diesel_cm: '',
+  opening_dip_diesel_litres: null,
+  closing_dip_petrol_cm: '',
+  closing_dip_petrol_litres: null,
+  closing_dip_diesel_cm: '',
+  closing_dip_diesel_litres: null,
+}
 
 export default function DipEntry() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const today = todayISO()
+
   const [tanks, setTanks] = useState([])
-  const [openingCm, setOpeningCm] = useState({})
-  const [closingCm, setClosingCm] = useState({})
-  const [openingSaved, setOpeningSaved] = useState(false)
-  const [closingSaved, setClosingSaved] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [formId, setFormId] = useState(null)
+  const [formStatus, setFormStatus] = useState('draft')
+  const [dips, setDips] = useState(EMPTY_DIPS)
+  const [showSaved, setShowSaved] = useState(false)
   const [error, setError] = useState(null)
+
+  const formIdRef = useRef(null)
+  const dipsRef = useRef(EMPTY_DIPS)
+  const tanksRef = useRef([])
+  const saveTimerRef = useRef(null)
+  const savedTimerRef = useRef(null)
 
   useEffect(() => {
     if (!user?.station_id) return
-    const today = todayISO()
 
     async function load() {
       const { data: tanksData } = await supabase
@@ -30,226 +47,236 @@ export default function DipEntry() {
         .order('fuel_type')
         .order('label')
 
-      const loadedTanks = tanksData ?? []
-      setTanks(loadedTanks)
+      tanksRef.current = tanksData ?? []
+      setTanks(tanksData ?? [])
 
-      const oCm = {}, cCm = {}
-      loadedTanks.forEach(t => { oCm[t.id] = ''; cCm[t.id] = '' })
-
-      const { data: entries } = await supabase
-        .from('dip_entries')
-        .select('id, note')
+      const { data: existing } = await supabase
+        .from('daily_sales_forms')
+        .select([
+          'id', 'status',
+          'opening_dip_petrol_cm', 'opening_dip_petrol_litres',
+          'opening_dip_diesel_cm', 'opening_dip_diesel_litres',
+          'closing_dip_petrol_cm', 'closing_dip_petrol_litres',
+          'closing_dip_diesel_cm', 'closing_dip_diesel_litres',
+        ].join(', '))
         .eq('station_id', user.station_id)
-        .gte('recorded_at', today + 'T00:00:00')
-        .lte('recorded_at', today + 'T23:59:59')
+        .eq('form_date', today)
+        .maybeSingle()
 
-      const openEntry = (entries ?? []).find(e => e.note === 'opening')
-      const closeEntry = (entries ?? []).find(e => e.note === 'closing')
-
-      if (openEntry) {
-        const { data: oReadings } = await supabase
-          .from('dip_tank_readings')
-          .select('tank_id, reading_cm')
-          .eq('dip_entry_id', openEntry.id)
-        ;(oReadings ?? []).forEach(r => { oCm[r.tank_id] = String(r.reading_cm) })
-        setOpeningSaved(true)
+      let fId = null, fStatus = 'draft'
+      if (existing) {
+        fId = existing.id
+        fStatus = existing.status
+        const loaded = {
+          opening_dip_petrol_cm:     existing.opening_dip_petrol_cm     != null ? String(existing.opening_dip_petrol_cm)     : '',
+          opening_dip_petrol_litres: existing.opening_dip_petrol_litres ?? null,
+          opening_dip_diesel_cm:     existing.opening_dip_diesel_cm     != null ? String(existing.opening_dip_diesel_cm)     : '',
+          opening_dip_diesel_litres: existing.opening_dip_diesel_litres ?? null,
+          closing_dip_petrol_cm:     existing.closing_dip_petrol_cm     != null ? String(existing.closing_dip_petrol_cm)     : '',
+          closing_dip_petrol_litres: existing.closing_dip_petrol_litres ?? null,
+          closing_dip_diesel_cm:     existing.closing_dip_diesel_cm     != null ? String(existing.closing_dip_diesel_cm)     : '',
+          closing_dip_diesel_litres: existing.closing_dip_diesel_litres ?? null,
+        }
+        setDips(loaded)
+        dipsRef.current = loaded
+      } else {
+        const { data: created } = await supabase
+          .from('daily_sales_forms')
+          .insert({ station_id: user.station_id, form_date: today, status: 'draft', submitted_by: user.id })
+          .select('id, status')
+          .single()
+        if (created) { fId = created.id; fStatus = created.status }
       }
 
-      if (closeEntry) {
-        const { data: cReadings } = await supabase
-          .from('dip_tank_readings')
-          .select('tank_id, reading_cm')
-          .eq('dip_entry_id', closeEntry.id)
-        ;(cReadings ?? []).forEach(r => { cCm[r.tank_id] = String(r.reading_cm) })
-        setClosingSaved(true)
-      }
-
-      setOpeningCm(oCm)
-      setClosingCm(cCm)
+      formIdRef.current = fId
+      setFormId(fId)
+      setFormStatus(fStatus)
     }
 
     load()
-  }, [user?.station_id])
+  }, [user?.station_id, today])
 
-  function litresPreview(tank, cmMap) {
-    const cm = parseFloat(cmMap[tank.id])
+  function computeLitres(cmField, cmStr) {
+    const cm = parseFloat(cmStr)
     if (isNaN(cm) || cm < 0) return null
-    return interpolateLitres(cm, tank.calibration_profile ?? [])
+    const fuelType = cmField.includes('petrol') ? 'PMA' : 'AGO'
+    const tank = tanksRef.current.find(t => t.fuel_type?.toUpperCase() === fuelType)
+    return interpolateLitres(cm, tank?.calibration_profile ?? [])
   }
 
-  async function saveSection(dipType, cmMap, setSectionSaved) {
-    const hasValues = tanks.some(t => cmMap[t.id] !== '')
-    if (!hasValues) return true
+  function handleChange(cmField, cmValue) {
+    const litresField = cmField.replace('_cm', '_litres')
+    const litres = computeLitres(cmField, cmValue)
 
-    const today = todayISO()
-    const { shiftId, error: shiftErr } = await getOrCreateShift(user.station_id, 'day', today)
-    if (shiftErr) { setError(shiftErr.message); return false }
+    setDips(prev => {
+      const next = { ...prev, [cmField]: cmValue, [litresField]: litres }
+      dipsRef.current = next
+      return next
+    })
+    setShowSaved(false)
 
-    const { data: dipEntry, error: dipErr } = await supabase
-      .from('dip_entries')
-      .insert({
-        shift_id: shiftId,
-        station_id: user.station_id,
-        recorded_by: user.id,
-        recorded_at: new Date().toISOString(),
-        is_verified: false,
-        note: dipType,
-      })
-      .select('id')
-      .single()
-
-    if (dipErr) { setError(dipErr.message); return false }
-
-    const tankReadings = tanks
-      .filter(t => cmMap[t.id] !== '')
-      .map(t => {
-        const cm = parseFloat(cmMap[t.id])
-        const litres = interpolateLitres(cm, t.calibration_profile ?? [])
-        return {
-          dip_entry_id: dipEntry.id,
-          tank_id: t.id,
-          reading_cm: cm,
-          calculated_litres: litres != null ? Math.round(litres) : 0,
-        }
-      })
-
-    if (tankReadings.length > 0) {
-      const { error: readErr } = await supabase.from('dip_tank_readings').insert(tankReadings)
-      if (readErr) { setError(readErr.message); return false }
-    }
-
-    setSectionSaved(true)
-    return true
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError(null)
-    setSaving(true)
-
-    if (!openingSaved) {
-      const ok = await saveSection('opening', openingCm, setOpeningSaved)
-      if (!ok) { setSaving(false); return }
-    }
-    if (!closingSaved) {
-      const ok = await saveSection('closing', closingCm, setClosingSaved)
-      if (!ok) { setSaving(false); return }
-    }
-
-    setSaving(false)
-    navigate('/manager')
+    clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(async () => {
+      const fId = formIdRef.current
+      if (!fId) return
+      const d = dipsRef.current
+      const { error: err } = await supabase
+        .from('daily_sales_forms')
+        .update({
+          opening_dip_petrol_cm:     d.opening_dip_petrol_cm     !== '' ? parseFloat(d.opening_dip_petrol_cm)     : null,
+          opening_dip_petrol_litres: d.opening_dip_petrol_litres,
+          opening_dip_diesel_cm:     d.opening_dip_diesel_cm     !== '' ? parseFloat(d.opening_dip_diesel_cm)     : null,
+          opening_dip_diesel_litres: d.opening_dip_diesel_litres,
+          closing_dip_petrol_cm:     d.closing_dip_petrol_cm     !== '' ? parseFloat(d.closing_dip_petrol_cm)     : null,
+          closing_dip_petrol_litres: d.closing_dip_petrol_litres,
+          closing_dip_diesel_cm:     d.closing_dip_diesel_cm     !== '' ? parseFloat(d.closing_dip_diesel_cm)     : null,
+          closing_dip_diesel_litres: d.closing_dip_diesel_litres,
+        })
+        .eq('id', fId)
+      if (err) {
+        setError(err.message)
+      } else {
+        clearTimeout(savedTimerRef.current)
+        setShowSaved(true)
+        savedTimerRef.current = setTimeout(() => setShowSaved(false), 2000)
+      }
+    }, 500)
   }
 
   if (!user) return null
 
-  const allSaved = openingSaved && closingSaved
+  const readOnly = formStatus === 'submitted'
+  const petrolTank = tanks.find(t => t.fuel_type?.toUpperCase() === 'PMA')
+  const dieselTank  = tanks.find(t => t.fuel_type?.toUpperCase() === 'AGO')
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="px-5 py-3.5 flex items-center justify-between" style={{ backgroundColor: '#06476B' }}>
         <div>
           <p className="text-white font-bold leading-tight">Record Dip</p>
-          <p className="text-xs" style={{ color: '#89c4d4' }}>{todayISO()} · 06:00–18:00</p>
+          <p className="text-xs" style={{ color: '#89c4d4' }}>{today} · 06:00–18:00</p>
         </div>
-        <button
-          onClick={() => navigate('/manager')}
-          className="text-sm px-3 py-1.5 rounded-lg text-white border border-white/30 hover:bg-white/10"
-        >
-          ← Back
-        </button>
+        <div className="flex items-center gap-3">
+          {showSaved && <span className="text-xs font-medium" style={{ color: '#89c4d4' }}>Saved</span>}
+          <button
+            onClick={() => navigate('/manager')}
+            className="text-sm px-3 py-1.5 rounded-lg text-white border border-white/30 hover:bg-white/10"
+          >
+            ← Back
+          </button>
+        </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-5 py-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <DipSection
-            title="Opening Dip"
-            subtitle="Start of shift"
-            tanks={tanks}
-            cmMap={openingCm}
-            setCm={(id, v) => setOpeningCm(prev => ({ ...prev, [id]: v }))}
-            saved={openingSaved}
-            litresPreview={(t) => litresPreview(t, openingCm)}
-          />
+      <div className="max-w-2xl mx-auto px-5 py-6 space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>
+        )}
+        {readOnly && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-4 py-3 text-sm">
+            Form submitted — dip values are read-only.
+          </div>
+        )}
 
-          <DipSection
-            title="Closing Dip"
-            subtitle="End of shift"
-            tanks={tanks}
-            cmMap={closingCm}
-            setCm={(id, v) => setClosingCm(prev => ({ ...prev, [id]: v }))}
-            saved={closingSaved}
-            litresPreview={(t) => litresPreview(t, closingCm)}
-          />
+        <DipSection
+          title="Opening Dip"
+          subtitle="Start of shift"
+          petrolTank={petrolTank}
+          dieselTank={dieselTank}
+          petrolCm={dips.opening_dip_petrol_cm}
+          petrolLitres={dips.opening_dip_petrol_litres}
+          dieselCm={dips.opening_dip_diesel_cm}
+          dieselLitres={dips.opening_dip_diesel_litres}
+          onPetrolChange={v => handleChange('opening_dip_petrol_cm', v)}
+          onDieselChange={v => handleChange('opening_dip_diesel_cm', v)}
+          readOnly={readOnly}
+        />
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">{error}</div>
-          )}
-
-          <button
-            type="submit"
-            disabled={saving || allSaved}
-            className="w-full py-3 rounded-xl text-white font-semibold text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ backgroundColor: '#06476B' }}
-          >
-            {saving ? 'Saving…' : allSaved ? 'All Dips Saved' : 'Save Dip Readings'}
-          </button>
-        </form>
+        <DipSection
+          title="Closing Dip"
+          subtitle="End of shift"
+          petrolTank={petrolTank}
+          dieselTank={dieselTank}
+          petrolCm={dips.closing_dip_petrol_cm}
+          petrolLitres={dips.closing_dip_petrol_litres}
+          dieselCm={dips.closing_dip_diesel_cm}
+          dieselLitres={dips.closing_dip_diesel_litres}
+          onPetrolChange={v => handleChange('closing_dip_petrol_cm', v)}
+          onDieselChange={v => handleChange('closing_dip_diesel_cm', v)}
+          readOnly={readOnly}
+        />
       </div>
     </div>
   )
 }
 
-function DipSection({ title, subtitle, tanks, cmMap, setCm, saved, litresPreview }) {
+function DipSection({
+  title, subtitle,
+  petrolTank, dieselTank,
+  petrolCm, petrolLitres,
+  dieselCm, dieselLitres,
+  onPetrolChange, onDieselChange,
+  readOnly,
+}) {
+  const hasAny = petrolCm !== '' || dieselCm !== ''
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden ${saved ? 'border-green-200' : 'border-gray-200'}`}>
-      <div className={`px-5 py-3 flex items-center justify-between border-b ${saved ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100'}`}>
-        <div>
-          <p className="text-sm font-semibold text-gray-700">{title}</p>
-          <p className="text-xs text-gray-400">{subtitle}</p>
-        </div>
-        {saved && <span className="text-xs text-green-600 font-medium">Saved</span>}
+    <div className={`bg-white rounded-xl border overflow-hidden ${hasAny ? 'border-teal-200' : 'border-gray-200'}`}>
+      <div className={`px-5 py-3 border-b ${hasAny ? 'bg-teal-50 border-teal-100' : 'bg-gray-50 border-gray-100'}`}>
+        <p className="text-sm font-semibold text-gray-700">{title}</p>
+        <p className="text-xs text-gray-400">{subtitle}</p>
       </div>
       <div className="p-5 space-y-4">
-        {tanks.map(tank => {
-          const preview = litresPreview(tank)
-          const chartEmpty = !tank.calibration_profile || tank.calibration_profile.length === 0
-          const isPetrol = tank.fuel_type?.toUpperCase() === 'PMA'
-          return (
-            <div key={tank.id} className="flex items-center gap-4">
-              <div className="flex-1">
-                <label className="text-sm font-medium text-gray-700 block mb-1">
-                  {fuelLabel(tank.fuel_type)} Tank
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  placeholder="cm"
-                  value={cmMap[tank.id] ?? ''}
-                  onChange={e => setCm(tank.id, e.target.value)}
-                  disabled={saved}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-gray-50 disabled:text-gray-400"
-                />
-              </div>
-              <div className="w-36 text-right">
-                {chartEmpty && isPetrol ? (
-                  <p className="text-xs text-amber-500 font-medium">Chart pending</p>
-                ) : preview != null ? (
-                  <p className="text-base font-semibold text-gray-700">
-                    {Math.round(preview).toLocaleString()} <span className="text-xs font-normal text-gray-400">L</span>
-                  </p>
-                ) : (
-                  <p className="text-xs text-gray-300">— L</p>
-                )}
-                {tank.capacity_litres && (
-                  <p className="text-xs text-gray-400">{tank.capacity_litres.toLocaleString()} L cap</p>
-                )}
-              </div>
-            </div>
-          )
-        })}
-        {tanks.length === 0 && (
-          <p className="text-sm text-gray-400">No active tanks found.</p>
+        <TankRow
+          label={fuelLabel('PMA') + ' Tank'}
+          cm={petrolCm}
+          litres={petrolLitres}
+          chartPending={!petrolTank?.calibration_profile?.length}
+          capacity={petrolTank?.capacity_litres}
+          onChange={onPetrolChange}
+          readOnly={readOnly}
+        />
+        <TankRow
+          label={fuelLabel('AGO') + ' Tank'}
+          cm={dieselCm}
+          litres={dieselLitres}
+          chartPending={false}
+          capacity={dieselTank?.capacity_litres}
+          onChange={onDieselChange}
+          readOnly={readOnly}
+        />
+      </div>
+    </div>
+  )
+}
+
+function TankRow({ label, cm, litres, chartPending, capacity, onChange, readOnly }) {
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex-1">
+        <label className="text-sm font-medium text-gray-700 block mb-1">{label}</label>
+        <input
+          type="number"
+          min="0"
+          step="0.1"
+          placeholder="cm"
+          value={cm}
+          onChange={e => onChange(e.target.value)}
+          disabled={readOnly}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-gray-50 disabled:text-gray-400"
+        />
+      </div>
+      <div className="w-40 text-right">
+        {chartPending ? (
+          <p className="text-xs text-amber-500 font-medium">Chart pending</p>
+        ) : litres != null ? (
+          <p className="text-base font-semibold text-gray-700">
+            {Math.round(litres).toLocaleString()}{' '}
+            <span className="text-xs font-normal text-gray-400">L</span>
+          </p>
+        ) : (
+          <p className="text-xs text-gray-300">— L</p>
+        )}
+        {capacity != null && (
+          <p className="text-xs text-gray-400">{capacity.toLocaleString()} L cap</p>
         )}
       </div>
     </div>

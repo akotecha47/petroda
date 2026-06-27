@@ -8,6 +8,8 @@ export default function ManagerHome() {
   const { user, signOut } = useAuth()
   const [stationName, setStationName] = useState('')
   const [formStatus, setFormStatus] = useState(null)
+  const [openingRecorded, setOpeningRecorded] = useState(false)
+  const [closingRecorded, setClosingRecorded] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -26,11 +28,13 @@ export default function ManagerHome() {
       setLoading(true)
       const { data } = await supabase
         .from('daily_sales_forms')
-        .select('status')
+        .select('status, opening_dip_petrol_cm, opening_dip_diesel_cm, closing_dip_petrol_cm, closing_dip_diesel_cm')
         .eq('station_id', user.station_id)
         .eq('form_date', todayISO())
         .maybeSingle()
       setFormStatus(data?.status ?? null)
+      setOpeningRecorded(data?.opening_dip_petrol_cm != null || data?.opening_dip_diesel_cm != null)
+      setClosingRecorded(data?.closing_dip_petrol_cm != null || data?.closing_dip_diesel_cm != null)
       setLoading(false)
     }
     load()
@@ -71,6 +75,21 @@ export default function ManagerHome() {
           )}
         </div>
 
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Today's Dips</p>
+          {loading ? (
+            <div className="space-y-2">
+              <div className="h-4 w-48 bg-gray-100 rounded animate-pulse" />
+              <div className="h-4 w-48 bg-gray-100 rounded animate-pulse" />
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <DipStatusRow label="Opening Dip" recorded={openingRecorded} />
+              <DipStatusRow label="Closing Dip"  recorded={closingRecorded} />
+            </div>
+          )}
+        </div>
+
         <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Quick Actions</p>
         <div className="space-y-3">
           <ActionLink to="/manager/daily-sales" label="Daily Sales Form" primary />
@@ -81,6 +100,20 @@ export default function ManagerHome() {
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+function DipStatusRow({ label, recorded }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`text-sm font-semibold ${recorded ? 'text-green-600' : 'text-gray-300'}`}>
+        {recorded ? '✓' : '○'}
+      </span>
+      <span className="text-sm text-gray-700 flex-1">{label}</span>
+      <span className={`text-xs ${recorded ? 'text-green-600' : 'text-gray-400'}`}>
+        {recorded ? 'recorded' : 'not yet'}
+      </span>
     </div>
   )
 }
