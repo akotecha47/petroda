@@ -186,7 +186,7 @@ function LubricantSection({ skus, lubState, onLub, disabled }) {
   let totalCR   = 0
   skus.forEach(sku => {
     const l = lubState[sku.id] || {}
-    const up = n(l.unit_price !== undefined ? l.unit_price : sku.unit_price)
+    const up = n(sku.unit_price)
     totalCash += n(l.cash_sales_qty) * up
     totalCR   += n(l.cr_sales_qty)   * up
   })
@@ -211,7 +211,7 @@ function LubricantSection({ skus, lubState, onLub, disabled }) {
         <tbody>
           {skus.map((sku, i) => {
             const l = lubState[sku.id] || {}
-            const up      = n(l.unit_price !== undefined ? l.unit_price : sku.unit_price)
+            const up      = n(sku.unit_price)
             const total   = n(l.opening_stock) + n(l.received)
             const cashAmt = n(l.cash_sales_qty) * up
             const crAmt   = n(l.cr_sales_qty) * up
@@ -224,7 +224,7 @@ function LubricantSection({ skus, lubState, onLub, disabled }) {
                 <td className="px-2 py-1"><Calc value={total} /></td>
                 <td className="px-2 py-1"><Num value={l.cash_sales_qty} onChange={v => onLub(sku.id, 'cash_sales_qty', v, sku)} disabled={disabled} /></td>
                 <td className="px-2 py-1"><Num value={l.cr_sales_qty} onChange={v => onLub(sku.id, 'cr_sales_qty', v, sku)} disabled={disabled} /></td>
-                <td className="px-2 py-1"><Calc value={l.unit_price !== undefined ? l.unit_price : sku.unit_price} /></td>
+                <td className="px-2 py-1"><Calc value={sku.unit_price} /></td>
                 <td className="px-2 py-1"><Calc value={cashAmt} /></td>
                 <td className="px-2 py-1"><Calc value={crAmt} /></td>
                 <td className="px-2 py-1"><Calc value={closing} /></td>
@@ -255,7 +255,7 @@ function SummarySection({ buildupState, lubState, skus, summaryState, onSummary,
 
   const lubsCashAmt = skus.reduce((s, sku) => {
     const l = lubState[sku.id] || {}
-    return s + n(l.cash_sales_qty) * n(l.unit_price !== undefined ? l.unit_price : sku.unit_price)
+    return s + n(l.cash_sales_qty) * n(sku.unit_price)
   }, 0)
 
   const creditTotal   = creditAmt + petroCardAmt
@@ -473,7 +473,6 @@ export default function DailySalesForm() {
           received:       ex?.received       ?? '',
           cash_sales_qty: ex?.cash_sales_qty ?? '',
           cr_sales_qty:   ex?.cr_sales_qty   ?? '',
-          unit_price:     ex?.unit_price     ?? sku.unit_price,
         }
       })
       setLubState(lInit); lubRef.current = lInit
@@ -621,7 +620,7 @@ export default function DailySalesForm() {
       const fuelCash    = n(bPMA.cash_qty) * n(bPMA.cash_rate) + n(bAGO.cash_qty) * n(bAGO.cash_rate)
       const lubsCash    = skusD.reduce((s, sku) => {
         const l = lub[sku.id] || {}
-        return s + n(l.cash_sales_qty) * n(l.unit_price !== undefined ? l.unit_price : sku.unit_price)
+        return s + n(l.cash_sales_qty) * n(sku.unit_price)
       }, 0)
       const totalCash   = fuelCash + lubsCash + n(summary.airtime_sales)
       const totalDep    = n(summary.cash_deposited) + n(summary.cheques_deposited) + n(summary.master_visa_card)

@@ -93,14 +93,30 @@ Store calibration data per tank as rows in a `tank_calibration` table (columns: 
 
 Interpolation formula:where C1/L1 and C2/L2 are the rows immediately below and above the measured cm.
 
+## Dip and stock model
+
+Two dip readings per day, taken by the station manager:
+- Opening dip — start of the 06:00–18:00 shift
+- Closing dip — end of the shift
+
+Each dip reading is in cm and converted to litres via the tank's calibration chart (linear interpolation, already built in `src/lib/dipUtils.js`). Diesel chart is loaded; petrol chart is pending — petrol dips show "chart pending" until the clean chart arrives.
+
+Both opening and closing litres are stored against the day's `daily_sales_form` so reconciliation has both ends of the day. Each day reconciles independently — there is no carry-forward of closing stock to the next day's opening. This avoids cold-start and broken-chain problems.
+
+Fuel stock reconciliation (admin only):
+```
+book_closing = opening_dip_litres + deliveries_received - total_meter_outflow
+fuel_variance = book_closing - closing_dip_litres
+```
+Flag if `fuel_variance` exceeds the fuel variance threshold set by owner.
+
 ## Reconciliation engines — admin only, invisible to station_manager
 
 **1. Fuel stock reconciliation**
-- Book closing stock = opening stock + deliveries received − total outflow
+- `book_closing = opening_dip_litres + deliveries_received − total_meter_outflow`
 - Total outflow per fuel type = sum of (closing meter − opening meter − pump test) across all pumps of that type
-- Physical closing stock = dip cm entered by station manager → converted to litres via calibration chart
-- Variance = book closing − physical closing
-- Flag if variance exceeds threshold set by master
+- `fuel_variance = book_closing − closing_dip_litres`
+- Flag if variance exceeds threshold set by owner
 
 **2. Cash / deposit reconciliation**
 - Expected cash = Fuel Cash Sales + Lubs Cash Sales + Airtime Sales
