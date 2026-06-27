@@ -98,7 +98,7 @@ export default function DipEntry() {
 
   function computeLitres(cmField, cmStr) {
     const cm = parseFloat(cmStr)
-    if (isNaN(cm) || cm < 0) return null
+    if (isNaN(cm) || cm <= 0) return null
     const fuelType = cmField.includes('petrol') ? 'PMA' : 'AGO'
     const tank = tanksRef.current.find(t => t.fuel_type?.toUpperCase() === fuelType)
     return interpolateLitres(cm, tank?.calibration_profile ?? [])
@@ -123,14 +123,14 @@ export default function DipEntry() {
       const { error: err } = await supabase
         .from('daily_sales_forms')
         .update({
-          opening_dip_petrol_cm:     d.opening_dip_petrol_cm     !== '' ? parseFloat(d.opening_dip_petrol_cm)     : null,
-          opening_dip_petrol_litres: d.opening_dip_petrol_litres,
-          opening_dip_diesel_cm:     d.opening_dip_diesel_cm     !== '' ? parseFloat(d.opening_dip_diesel_cm)     : null,
-          opening_dip_diesel_litres: d.opening_dip_diesel_litres,
-          closing_dip_petrol_cm:     d.closing_dip_petrol_cm     !== '' ? parseFloat(d.closing_dip_petrol_cm)     : null,
-          closing_dip_petrol_litres: d.closing_dip_petrol_litres,
-          closing_dip_diesel_cm:     d.closing_dip_diesel_cm     !== '' ? parseFloat(d.closing_dip_diesel_cm)     : null,
-          closing_dip_diesel_litres: d.closing_dip_diesel_litres,
+          opening_dip_petrol_cm:     parseFloat(d.opening_dip_petrol_cm) > 0  ? parseFloat(d.opening_dip_petrol_cm)  : null,
+          opening_dip_petrol_litres: parseFloat(d.opening_dip_petrol_cm) > 0  ? d.opening_dip_petrol_litres          : null,
+          opening_dip_diesel_cm:     parseFloat(d.opening_dip_diesel_cm) > 0  ? parseFloat(d.opening_dip_diesel_cm)  : null,
+          opening_dip_diesel_litres: parseFloat(d.opening_dip_diesel_cm) > 0  ? d.opening_dip_diesel_litres          : null,
+          closing_dip_petrol_cm:     parseFloat(d.closing_dip_petrol_cm) > 0  ? parseFloat(d.closing_dip_petrol_cm)  : null,
+          closing_dip_petrol_litres: parseFloat(d.closing_dip_petrol_cm) > 0  ? d.closing_dip_petrol_litres          : null,
+          closing_dip_diesel_cm:     parseFloat(d.closing_dip_diesel_cm) > 0  ? parseFloat(d.closing_dip_diesel_cm)  : null,
+          closing_dip_diesel_litres: parseFloat(d.closing_dip_diesel_cm) > 0  ? d.closing_dip_diesel_litres          : null,
         })
         .eq('id', fId)
       if (err) {
@@ -217,7 +217,7 @@ function DipSection({
   onPetrolChange, onDieselChange,
   readOnly,
 }) {
-  const hasAny = petrolCm !== '' || dieselCm !== ''
+  const hasAny = parseFloat(petrolCm) > 0 || parseFloat(dieselCm) > 0
   return (
     <div className={`bg-white rounded-xl border overflow-hidden ${hasAny ? 'border-teal-200' : 'border-gray-200'}`}>
       <div className={`px-5 py-3 border-b ${hasAny ? 'bg-teal-50 border-teal-100' : 'bg-gray-50 border-gray-100'}`}>

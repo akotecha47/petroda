@@ -10,6 +10,7 @@ export default function ManagerHome() {
   const [formStatus, setFormStatus] = useState(null)
   const [openingRecorded, setOpeningRecorded] = useState(false)
   const [closingRecorded, setClosingRecorded] = useState(false)
+  const [pendingDeposit, setPendingDeposit] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -26,15 +27,30 @@ export default function ManagerHome() {
     if (!user?.station_id) return
     async function load() {
       setLoading(true)
-      const { data } = await supabase
-        .from('daily_sales_forms')
-        .select('status, opening_dip_petrol_cm, opening_dip_diesel_cm, closing_dip_petrol_cm, closing_dip_diesel_cm')
-        .eq('station_id', user.station_id)
-        .eq('form_date', todayISO())
-        .maybeSingle()
-      setFormStatus(data?.status ?? null)
-      setOpeningRecorded(data?.opening_dip_petrol_cm != null || data?.opening_dip_diesel_cm != null)
-      setClosingRecorded(data?.closing_dip_petrol_cm != null || data?.closing_dip_diesel_cm != null)
+      const [{ data: todayData }, { data: submittedForms, error: sfErr }] = await Promise.all([
+        supabase
+          .from('daily_sales_forms')
+          .select('status, opening_dip_petrol_cm, opening_dip_diesel_cm, closing_dip_petrol_cm, closing_dip_diesel_cm')
+          .eq('station_id', user.station_id)
+          .eq('form_date', todayISO())
+          .maybeSingle(),
+        supabase
+          .from('daily_sales_forms')
+          .select('id, form_date, deposit_slips(id)')
+          .eq('station_id', user.station_id)
+          .eq('status', 'submitted')
+          .order('form_date', { ascending: false })
+          .limit(5),
+      ])
+
+      setFormStatus(todayData?.status ?? null)
+      setOpeningRecorded((todayData?.opening_dip_petrol_cm ?? 0) > 0 || (todayData?.opening_dip_diesel_cm ?? 0) > 0)
+      setClosingRecorded((todayData?.closing_dip_petrol_cm ?? 0) > 0 || (todayData?.closing_dip_diesel_cm ?? 0) > 0)
+
+      const pending = sfErr
+        ? null
+        : (submittedForms ?? []).find(f => !f.deposit_slips || f.deposit_slips.length === 0) ?? null
+      setPendingDeposit(pending)
       setLoading(false)
     }
     load()
@@ -95,13 +111,24 @@ export default function ManagerHome() {
           <ActionLink to="/manager/daily-sales" label="Daily Sales Form" primary />
           <ActionLink to="/manager/delivery" label="Record Delivery" navy />
           <ActionLink to="/manager/dip" label="Record Dip" outline />
-          {formStatus === 'submitted' && (
-            <ActionLink to="/manager/deposit" label="Submit Deposit Slip" primary />
+          {pendingDeposit && (
+            <ActionLink
+              to="/manager/deposit"
+              label="Submit Deposit Slip"
+              sublabel={`For ${fmtDateShort(pendingDeposit.form_date)}`}
+              primary
+            />
           )}
         </div>
       </div>
     </div>
   )
+}
+
+function fmtDateShort(isoDate) {
+  return new Date(isoDate + 'T00:00:00').toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  })
 }
 
 function DipStatusRow({ label, recorded }) {
@@ -118,21 +145,27 @@ function DipStatusRow({ label, recorded }) {
   )
 }
 
-function ActionLink({ to, label, primary, navy, outline }) {
+function ActionLink({ to, label, sublabel, primary, navy, outline }) {
   const base = 'flex items-center justify-between w-full px-5 py-4 rounded-xl font-medium transition-opacity'
+  const left = (
+    <span>
+      {label}
+      {sublabel && <span className="block text-xs font-normal opacity-70 mt-0.5">{sublabel}</span>}
+    </span>
+  )
   if (primary) return (
     <Link to={to} className={`${base} text-white hover:opacity-90`} style={{ backgroundColor: '#1988A3' }}>
-      <span>{label}</span><span className="text-white/60">→</span>
+      {left}<span className="text-white/60">→</span>
     </Link>
   )
   if (navy) return (
     <Link to={to} className={`${base} text-white hover:opacity-90`} style={{ backgroundColor: '#06476B' }}>
-      <span>{label}</span><span className="text-white/60">→</span>
+      {left}<span className="text-white/60">→</span>
     </Link>
   )
   return (
     <Link to={to} className={`${base} bg-white border border-gray-200 text-gray-800 hover:bg-gray-50`}>
-      <span>{label}</span><span className="text-gray-400">→</span>
+      {left}<span className="text-gray-400">→</span>
     </Link>
   )
 }

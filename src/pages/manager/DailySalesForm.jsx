@@ -361,6 +361,7 @@ export default function DailySalesForm() {
     master_visa_card: '', tnm_opening_balance: '', tnm_top_up: '',
     tnm_closing_balance: '', form_completed_by: '', form_checked_by: '',
   })
+  const [depositSlip, setDepositSlip]   = useState(null)
   const [saving, setSaving]             = useState(false)
   const [submitting, setSubmitting]     = useState(false)
   const [showConfirm, setShowConfirm]   = useState(false)
@@ -441,10 +442,10 @@ export default function DailySalesForm() {
 
       if (!fId) { setPageLoading(false); return }
 
-      // Load all form data + fuel prices in parallel
+      // Load all form data + fuel prices + deposit in parallel
       const [
         { data: meterData }, { data: buildupData }, { data: lubData },
-        { data: summaryData }, { data: pricesData },
+        { data: summaryData }, { data: pricesData }, { data: depositData },
       ] = await Promise.all([
         supabase.from('meter_readings').select('*').eq('form_id', fId),
         supabase.from('sales_buildup').select('*').eq('form_id', fId),
@@ -452,6 +453,8 @@ export default function DailySalesForm() {
         supabase.from('daily_summary').select('*').eq('form_id', fId).maybeSingle(),
         supabase.from('fuel_prices').select('fuel_type, price_per_litre')
           .order('effective_from', { ascending: false }).limit(10),
+        supabase.from('deposit_slips').select('deposit_amount, bank_name, submitted_at')
+          .eq('form_id', fId).maybeSingle(),
       ])
 
       const currentPrices = { PMA: '', AGO: '' }
@@ -535,6 +538,7 @@ export default function DailySalesForm() {
       }
 
       if (!cancelled) {
+        if (depositData) setDepositSlip(depositData)
         setPageLoading(false)
         setTimeout(() => { initialized.current = true }, 200)
       }
@@ -833,6 +837,19 @@ export default function DailySalesForm() {
             </div>
           </div>
         </div>
+
+        {/* Deposit badge — shown on submitted forms once deposit is recorded */}
+        {readOnly && depositSlip && (
+          <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4 flex items-center gap-4">
+            <span className="text-green-600 text-xl leading-none">✓</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-green-700">Deposit Recorded</p>
+              <p className="text-xs text-green-600 mt-0.5">
+                {depositSlip.bank_name} · MWK {Math.round(depositSlip.deposit_amount).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Submit */}
         {!readOnly && (

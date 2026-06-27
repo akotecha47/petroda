@@ -13,6 +13,7 @@ import ManagerHome from './pages/manager/ManagerHome'
 import DailySalesForm from './pages/manager/DailySalesForm'
 import DeliveryEntry from './pages/manager/DeliveryEntry'
 import DipEntry from './pages/manager/DipEntry'
+import DepositSlip from './pages/manager/DepositSlip'
 
 function RootRedirect() {
   const { session, user, loading } = useAuth()
@@ -143,7 +144,7 @@ export default function App() {
           path="/manager/deposit"
           element={
             <ProtectedRoute allowedRoles={['manager']}>
-              <div>Deposit Slip — coming soon</div>
+              <DepositSlip />
             </ProtectedRoute>
           }
         />
